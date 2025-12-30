@@ -19,17 +19,15 @@ jobs:
           VERSION=${GITHUB_REF#refs/tags/v}
           sed -i '' "s/static let appVersion = \".*\"/static let appVersion = \"$VERSION\"/" Sources/App/AppConfig.swift
           
-      - name: Build App
-        run: swift build -c release --arch arm64 --arch x86_64
+      - name: Build App (Apple Silicon)
+        run: swift build -c release --arch arm64
         
       - name: Create .app Bundle
         run: |
           APP_NAME="ValetBar"
-          EXECUTABLE_PATH=".build/apple/Products/Release/$APP_NAME"
-          # If universal build fails or path requires adjustment, find the executable
-          if [ ! -f "$EXECUTABLE_PATH" ]; then
-             EXECUTABLE_PATH=$(find .build -name "$APP_NAME" -type f | grep release | head -n 1)
-          fi
+          # Explicit path for Apple Silicon build
+          BUILD_DIR=".build/arm64-apple-macosx/release"
+          EXECUTABLE_PATH="$BUILD_DIR/$APP_NAME"
           
           BUNDLE_PATH="$APP_NAME.app"
           CONTENTS_PATH="$BUNDLE_PATH/Contents"
@@ -42,25 +40,16 @@ jobs:
           # Copy Executable
           cp "$EXECUTABLE_PATH" "$MACOS_PATH/"
           
-          # Copy Resource Bundle (ValetBar_ValetBar.bundle)
-          # Search recursively for the bundle
-          echo "Searching for resource bundle..."
-          FOUND_BUNDLE=$(find .build -name "ValetBar_ValetBar.bundle" -type d | head -n 1)
+          # Copy Resource Bundle
+          # Now we know exactly where it is for arm64
+          RESOURCE_BUNDLE="$BUILD_DIR/ValetBar_ValetBar.bundle"
           
-          if [ -z "$FOUND_BUNDLE" ]; then
-             echo "Specific bundle not found. Searching for ANY bundle..."
-             FOUND_BUNDLE=$(find .build -name "*.bundle" -type d | head -n 1)
-          fi
-          
-          if [ -d "$FOUND_BUNDLE" ]; then
-              echo "Found bundle at: $FOUND_BUNDLE"
-              # Verify name matches expectation
-              TARGET_BUNDLE_NAME="ValetBar_ValetBar.bundle"
-              cp -R "$FOUND_BUNDLE" "$RESOURCES_PATH/$TARGET_BUNDLE_NAME"
+          if [ -d "$RESOURCE_BUNDLE" ]; then
+              echo "Copying resource bundle from $RESOURCE_BUNDLE"
+              cp -R "$RESOURCE_BUNDLE" "$RESOURCES_PATH/"
           else
-             echo "CRITICAL ERROR: Resource bundle not found! App will crash."
-             # List build dir to help debugging if this fails again
-             find .build -maxdepth 4
+             echo "CRITICAL ERROR: ARM64 Resource bundle not found at $RESOURCE_BUNDLE"
+             exit 1
           fi
           
           # Create Info.plist

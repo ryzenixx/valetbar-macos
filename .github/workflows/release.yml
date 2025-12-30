@@ -25,7 +25,6 @@ jobs:
       - name: Create .app Bundle
         run: |
           APP_NAME="ValetBar"
-          # Explicit path for Apple Silicon build
           BUILD_DIR=".build/arm64-apple-macosx/release"
           EXECUTABLE_PATH="$BUILD_DIR/$APP_NAME"
           
@@ -37,11 +36,8 @@ jobs:
           mkdir -p "$MACOS_PATH"
           mkdir -p "$RESOURCES_PATH"
           
-          # Copy Executable
           cp "$EXECUTABLE_PATH" "$MACOS_PATH/"
           
-          # Copy Resource Bundle
-          # Now we know exactly where it is for arm64
           RESOURCE_BUNDLE="$BUILD_DIR/ValetBar_ValetBar.bundle"
           
           if [ -d "$RESOURCE_BUNDLE" ]; then
@@ -52,14 +48,9 @@ jobs:
              exit 1
           fi
           
-          
-          # Re-sign the app ad-hoc to fix "App is damaged" error on Apple Silicon
-          # This is necessary because we modified the bundle by adding resources
           echo "Re-signing application..."
           codesign --force --deep --sign - "$BUNDLE_PATH"
           
-          # Create Info.plist
-          # LSUIElement=1 hides the app from the Dock (Menu bar app behavior)
           cat > "$CONTENTS_PATH/Info.plist" <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

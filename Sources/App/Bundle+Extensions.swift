@@ -1,7 +1,8 @@
 import Foundation
 
 extension Bundle {
-    static var appModule: Bundle {
+extension Bundle {
+    static var module: Bundle {
         if let resourcesURL = Bundle.main.resourceURL {
             let bundleURL = resourcesURL.appendingPathComponent("ValetBar_ValetBar.bundle")
             if let bundle = Bundle(url: bundleURL) {
@@ -17,4 +18,5 @@ extension Bundle {
         
         return Bundle.main
     }
+}
 }

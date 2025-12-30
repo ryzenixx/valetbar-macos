@@ -6,7 +6,7 @@ struct ValetBarApp: App {
     @StateObject private var viewModel = ValetViewModel()
     
     private var menuBarIcon: NSImage {
-        if let path = Bundle.appModule.path(forResource: "MenuBarIcon", ofType: "png"),
+        if let path = Bundle.module.path(forResource: "MenuBarIcon", ofType: "png"),
            let image = NSImage(contentsOfFile: path) {
             image.isTemplate = true
             image.size = CGSize(width: 15, height: 15)

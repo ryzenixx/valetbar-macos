@@ -20,8 +20,16 @@ class ValetCLI {
     private func getValetPath() -> String {
         if let path = cachedValetPath { return path }
         
-        for path in commonPaths {
+        let pathsToCheck = [
+            "/opt/homebrew/bin/valet",
+            "/usr/local/bin/valet",
+            "\(FileManager.default.homeDirectoryForCurrentUser.path)/.composer/vendor/bin/valet",
+            "\(FileManager.default.homeDirectoryForCurrentUser.path)/.config/composer/vendor/bin/valet"
+        ]
+        
+        for path in pathsToCheck {
             if FileManager.default.fileExists(atPath: path) {
+                print("Found valet at: \(path)")
                 cachedValetPath = path
                 return path
             }
@@ -33,17 +41,27 @@ class ValetCLI {
         let valetPath = getValetPath()
         let process = Process()
         
+        // Construct the environment
+        var env = ProcessInfo.processInfo.environment
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        env["HOME"] = home
+        
+        // Important: Valet needs PHP, so we must include common paths in PATH
+        let newPath = "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:\(home)/.composer/vendor/bin"
+        env["PATH"] = newPath
+        
+        process.environment = env
+        
+        print("Executing: \(valetPath) \(arguments.joined(separator: " "))")
+        
         if valetPath.hasPrefix("/") {
             process.executableURL = URL(fileURLWithPath: valetPath)
             process.arguments = arguments
         } else {
+            // Fallback: Use user's shell to hopefully find 'valet'
             process.executableURL = URL(fileURLWithPath: "/bin/zsh")
-            process.arguments = ["-lc", "valet " + arguments.joined(separator: " ")]
+            process.arguments = ["-l", "-c", "valet " + arguments.joined(separator: " ")]
         }
-        
-        var env = ProcessInfo.processInfo.environment
-        env["HOME"] = FileManager.default.homeDirectoryForCurrentUser.path
-        process.environment = env
         
         let pipe = Pipe()
         process.standardOutput = pipe
@@ -57,6 +75,8 @@ class ValetCLI {
                 let data = pipe.fileHandleForReading.readDataToEndOfFile()
                 let output = String(data: data, encoding: .utf8) ?? ""
                 
+                print("Output: \(output)")
+                
                 if process.terminationStatus == 0 {
                     continuation.resume(returning: output)
                 } else {
@@ -67,6 +87,7 @@ class ValetCLI {
                     }
                 }
             } catch {
+                print("Execution failed: \(error)")
                 continuation.resume(throwing: error)
             }
         }

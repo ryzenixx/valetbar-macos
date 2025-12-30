@@ -52,6 +52,12 @@ jobs:
              exit 1
           fi
           
+          
+          # Re-sign the app ad-hoc to fix "App is damaged" error on Apple Silicon
+          # This is necessary because we modified the bundle by adding resources
+          echo "Re-signing application..."
+          codesign --force --deep --sign - "$BUNDLE_PATH"
+          
           # Create Info.plist
           # LSUIElement=1 hides the app from the Dock (Menu bar app behavior)
           cat > "$CONTENTS_PATH/Info.plist" <<EOF

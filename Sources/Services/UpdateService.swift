@@ -60,62 +60,33 @@ class UpdateService: ObservableObject {
             }
             try fileManager.moveItem(at: localURL, to: targetURL)
             
-            // 3. Run seamless updater script
-            try runUpdaterScript(dmgPath: targetURL)
+            // 3. Mount DMG
+            print("Mounting DMG at \(targetURL.path)...")
+            let mountProcess = Process()
+            mountProcess.executableURL = URL(fileURLWithPath: "/usr/bin/hdiutil")
+            mountProcess.arguments = ["attach", targetURL.path]
+            try mountProcess.run()
+            mountProcess.waitUntilExit()
+            
+            // 4. Open the mounted volume
+            // The volume name is usually "ValetBar Installer" (set in release.yml)
+            // But we can try to open the generic volume path if we knew the mount point.
+            // Since hdiutil attaches to /Volumes/ValetBar Installer by default:
+            let volumePath = "/Volumes/ValetBar Installer"
+            
+            // Wait slightly for mount
+            try await Task.sleep(nanoseconds: 1_000_000_000)
+            
+            NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: volumePath)
+            
+            // 5. Quit App to allow overwrite
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                NSApplication.shared.terminate(nil)
+            }
             
         } catch {
             print("Update failed: \(error)")
             isDownloading = false
-        }
-    }
-
-    private func runUpdaterScript(dmgPath: URL) throws {
-        let scriptPath = FileManager.default.temporaryDirectory.appendingPathComponent("valetbar_updater.sh")
-        
-        let script = """
-        #!/bin/bash
-        PID=\(ProcessInfo.processInfo.processIdentifier)
-        DMG_PATH="\(dmgPath.path)"
-        MOUNT_POINT="/tmp/ValetBar_Update_Mount"
-        APP_PATH="/Applications/ValetBar.app"
-        
-        # 1. Wait for app to terminate
-        echo "Waiting for ValetBar (PID $PID) to quit..."
-        while kill -0 $PID 2> /dev/null; do sleep 0.5; done
-        
-        # 2. Mount DMG
-        echo "Mounting DMG..."
-        hdiutil attach "$DMG_PATH" -mountpoint "$MOUNT_POINT" -nobrowse
-        
-        # 3. Replace App
-        if [ -d "$MOUNT_POINT/ValetBar.app" ]; then
-            echo "Replacing application..."
-            rm -rf "$APP_PATH"
-            cp -R "$MOUNT_POINT/ValetBar.app" "$APP_PATH"
-        fi
-        
-        # 4. Cleanup
-        hdiutil detach "$MOUNT_POINT"
-        rm -f "$DMG_PATH"
-        rm -f "$0" # Delete self
-        
-        # 5. Relaunch
-        echo "Relaunching..."
-        open "$APP_PATH"
-        """
-        
-        try script.write(to: scriptPath, atomically: true, encoding: String.Encoding.utf8)
-        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: scriptPath.path)
-        
-        // Execute detached
-        let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/bin/bash")
-        task.arguments = ["-c", scriptPath.path]
-        try task.run()
-        
-        // Quit immediately to let the script proceed
-        DispatchQueue.main.async {
-            NSApplication.shared.terminate(nil)
         }
     }
     

@@ -20,20 +20,21 @@ jobs:
           sed -i '' "s/static let appVersion = \".*\"/static let appVersion = \"$VERSION\"/" Sources/App/AppConfig.swift
           
       - name: Build App (Apple Silicon)
-        run: swift build -c release --arch arm64
+        run: |
+          swift package clean
+          swift build -c release --arch arm64
 
       - name: Create and Sign .app Bundle
         run: |
           APP_NAME="ValetBar"
           # Explicit path for Apple Silicon build
-          # We use a wildcard for the build path to be robust against minor path variations
           BUILD_DIR=".build/arm64-apple-macosx/release"
           EXECUTABLE_PATH="$BUILD_DIR/$APP_NAME"
           
           # Verify executable exists
           if [ ! -f "$EXECUTABLE_PATH" ]; then
-             echo "Executable not found at $EXECUTABLE_PATH. Searching..."
-             EXECUTABLE_PATH=$(find .build -name "$APP_NAME" -type f | grep release | head -n 1)
+             echo "CRITICAL ERROR: Executable not found at $EXECUTABLE_PATH"
+             exit 1
           fi
           
           echo "Using executable: $EXECUTABLE_PATH"
@@ -49,14 +50,14 @@ jobs:
           cp "$EXECUTABLE_PATH" "$MACOS_PATH/"
           
           # Copy Resource Bundle
-          # Locate it dynamically to be safe
-          RESOURCE_BUNDLE=$(find .build -name "ValetBar_ValetBar.bundle" -type d | head -n 1)
+          # Now we know exactly where it is for arm64
+          RESOURCE_BUNDLE="$BUILD_DIR/ValetBar_ValetBar.bundle"
           
           if [ -d "$RESOURCE_BUNDLE" ]; then
               echo "Copying resource bundle from $RESOURCE_BUNDLE"
               cp -R "$RESOURCE_BUNDLE" "$RESOURCES_PATH/"
           else
-             echo "CRITICAL ERROR: Resource bundle not found!"
+             echo "CRITICAL ERROR: Resource bundle not found at $RESOURCE_BUNDLE"
              exit 1
           fi
           

@@ -46,12 +46,7 @@ jobs:
           
           if [ -d "$RESOURCE_BUNDLE" ]; then
               echo "Copying resource bundle from $RESOURCE_BUNDLE"
-              # 1. Standard Resources location (Real copy)
               cp -R "$RESOURCE_BUNDLE" "$RESOURCES_PATH/"
-              
-              # 2. Symlink in MacOS (Adjacent to binary) to satisfy SPM lookup
-              # Points to ../Resources/ValetBar_ValetBar.bundle
-              ln -s "../Resources/ValetBar_ValetBar.bundle" "$MACOS_PATH/ValetBar_ValetBar.bundle"
           else
              echo "CRITICAL ERROR: ARM64 Resource bundle not found at $RESOURCE_BUNDLE"
              exit 1

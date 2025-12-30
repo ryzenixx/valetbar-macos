@@ -33,7 +33,7 @@ struct MenuBarView: View {
     }
     
     private var headerIcon: NSImage {
-        if let path = Bundle.module.path(forResource: "MenuBarIcon", ofType: "png"),
+        if let path = Bundle.appModule.path(forResource: "MenuBarIcon", ofType: "png"),
            let image = NSImage(contentsOfFile: path) {
             image.isTemplate = true
             return image

@@ -1,0 +1,90 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build and Package
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Set App Version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          sed -i '' "s/static let appVersion = \".*\"/static let appVersion = \"$VERSION\"/" Sources/App/AppConfig.swift
+          
+      - name: Build App
+        run: swift build -c release --arch arm64 --arch x86_64
+        
+      - name: Create .app Bundle
+        run: |
+          APP_NAME="ValetBar"
+          EXECUTABLE_PATH=".build/apple/Products/Release/$APP_NAME"
+          # If universal build fails or path requires adjustment, find the executable
+          if [ ! -f "$EXECUTABLE_PATH" ]; then
+             EXECUTABLE_PATH=$(find .build -name "$APP_NAME" -type f | grep release | head -n 1)
+          fi
+          
+          BUNDLE_PATH="$APP_NAME.app"
+          CONTENTS_PATH="$BUNDLE_PATH/Contents"
+          MACOS_PATH="$CONTENTS_PATH/MacOS"
+          RESOURCES_PATH="$CONTENTS_PATH/Resources"
+          
+          mkdir -p "$MACOS_PATH"
+          mkdir -p "$RESOURCES_PATH"
+          
+          # Copy Executable
+          cp "$EXECUTABLE_PATH" "$MACOS_PATH/"
+          
+          # Create Info.plist
+          # LSUIElement=1 hides the app from the Dock (Menu bar app behavior)
+          cat > "$CONTENTS_PATH/Info.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>$APP_NAME</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.valetbar.app</string>
+              <key>CFBundleName</key>
+              <string>$APP_NAME</string>
+              <key>CFBundleShortVersionString</key>
+              <string>${GITHUB_REF#refs/tags/v}</string>
+              <key>CFBundleVersion</key>
+              <string>${GITHUB_RUN_NUMBER}</string>
+              <key>LSUIElement</key>
+              <true/>
+              <key>NSHighResolutionCapable</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+          
+      - name: Create DMG
+        run: |
+          brew install create-dmg
+          test -f ValetBar.dmg && rm ValetBar.dmg
+          create-dmg \
+            --volname "ValetBar Installer" \
+            --volicon "Sources/Resources/MenuBarIcon.png" \
+            --window-pos 200 120 \
+            --window-size 800 400 \
+            --icon-size 100 \
+            --icon "ValetBar.app" 200 190 \
+            --hide-extension "ValetBar.app" \
+            --app-drop-link 600 185 \
+            "ValetBar.dmg" \
+            "ValetBar.app"
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ValetBar.dmg

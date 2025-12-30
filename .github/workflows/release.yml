@@ -19,39 +19,36 @@ jobs:
           VERSION=${GITHUB_REF#refs/tags/v}
           sed -i '' "s/static let appVersion = \".*\"/static let appVersion = \"$VERSION\"/" Sources/App/AppConfig.swift
           
-      - name: Build App (Apple Silicon)
-        run: swift build -c release --arch arm64
-        
-      - name: Create .app Bundle
+      - name: Build App (Xcodebuild)
+        run: |
+          # Use Standard Apple Build Tool (xcodebuild)
+          # This handles resources, structure, and signing natively.
+          xcodebuild -scheme ValetBar \
+            -configuration Release \
+            -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath .build/derived_data \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED="YES" \
+            CODE_SIGNING_ALLOWED="YES"
+
+      - name: Prepare Release
         run: |
           APP_NAME="ValetBar"
-          BUILD_DIR=".build/arm64-apple-macosx/release"
-          EXECUTABLE_PATH="$BUILD_DIR/$APP_NAME"
+          # Xcodebuild outputs to standard DerivedData path
+          SOURCE_APP=".build/derived_data/Build/Products/Release/$APP_NAME.app"
           
+          # Force deep ad-hoc signing to ensure validity after build
+          echo "Verifying signature..."
+          codesign --force --deep --sign - "$SOURCE_APP"
+          
+          # Move to root for DMG creation
+          cp -R "$SOURCE_APP" "$APP_NAME.app"
+          
+          # Define paths for Info.plist creation
           BUNDLE_PATH="$APP_NAME.app"
           CONTENTS_PATH="$BUNDLE_PATH/Contents"
-          MACOS_PATH="$CONTENTS_PATH/MacOS"
-          RESOURCES_PATH="$CONTENTS_PATH/Resources"
           
-          mkdir -p "$MACOS_PATH"
-          mkdir -p "$RESOURCES_PATH"
-          
-          cp "$EXECUTABLE_PATH" "$MACOS_PATH/"
-          
-          RESOURCE_BUNDLE="$BUILD_DIR/ValetBar_ValetBar.bundle"
-          
-          if [ -d "$RESOURCE_BUNDLE" ]; then
-              echo "Copying resource bundle from $RESOURCE_BUNDLE"
-              cp -R "$RESOURCE_BUNDLE" "$RESOURCES_PATH/"
-          else
-             echo "CRITICAL ERROR: ARM64 Resource bundle not found at $RESOURCE_BUNDLE"
-             exit 1
-          fi
-          
-          echo "Re-signing application..."
-          codesign --force --deep --sign - "$BUNDLE_PATH"
-          
-          cat > "$CONTENTS_PATH/Info.plist" <<EOF
+          # Create/Overwrite Info.plist
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">

@@ -19,34 +19,52 @@ jobs:
           VERSION=${GITHUB_REF#refs/tags/v}
           sed -i '' "s/static let appVersion = \".*\"/static let appVersion = \"$VERSION\"/" Sources/App/AppConfig.swift
           
-      - name: Build App (Xcodebuild)
-        run: |
-          # Use Standard Apple Build Tool (xcodebuild)
-          # This handles resources, structure, and signing natively.
-          xcodebuild -scheme ValetBar \
-            -configuration Release \
-            -destination 'platform=macOS,arch=arm64' \
-            -derivedDataPath .build/derived_data \
-            CODE_SIGN_IDENTITY="-" \
-            CODE_SIGNING_REQUIRED="YES" \
-            CODE_SIGNING_ALLOWED="YES"
+      - name: Build App (Apple Silicon)
+        run: swift build -c release --arch arm64
 
-      - name: Prepare Release
+      - name: Create and Sign .app Bundle
         run: |
           APP_NAME="ValetBar"
-          # Xcodebuild outputs to standard DerivedData path
-          SOURCE_APP=".build/derived_data/Build/Products/Release/$APP_NAME.app"
+          # Explicit path for Apple Silicon build
+          # We use a wildcard for the build path to be robust against minor path variations
+          BUILD_DIR=".build/arm64-apple-macosx/release"
+          EXECUTABLE_PATH="$BUILD_DIR/$APP_NAME"
           
-          # Force deep ad-hoc signing to ensure validity after build
-          echo "Verifying signature..."
-          codesign --force --deep --sign - "$SOURCE_APP"
+          # Verify executable exists
+          if [ ! -f "$EXECUTABLE_PATH" ]; then
+             echo "Executable not found at $EXECUTABLE_PATH. Searching..."
+             EXECUTABLE_PATH=$(find .build -name "$APP_NAME" -type f | grep release | head -n 1)
+          fi
           
-          # Move to root for DMG creation
-          cp -R "$SOURCE_APP" "$APP_NAME.app"
+          echo "Using executable: $EXECUTABLE_PATH"
           
-          # Define paths for Info.plist creation
           BUNDLE_PATH="$APP_NAME.app"
           CONTENTS_PATH="$BUNDLE_PATH/Contents"
+          MACOS_PATH="$CONTENTS_PATH/MacOS"
+          RESOURCES_PATH="$CONTENTS_PATH/Resources"
+          
+          mkdir -p "$MACOS_PATH"
+          mkdir -p "$RESOURCES_PATH"
+          
+          cp "$EXECUTABLE_PATH" "$MACOS_PATH/"
+          
+          # Copy Resource Bundle
+          # Locate it dynamically to be safe
+          RESOURCE_BUNDLE=$(find .build -name "ValetBar_ValetBar.bundle" -type d | head -n 1)
+          
+          if [ -d "$RESOURCE_BUNDLE" ]; then
+              echo "Copying resource bundle from $RESOURCE_BUNDLE"
+              cp -R "$RESOURCE_BUNDLE" "$RESOURCES_PATH/"
+          else
+             echo "CRITICAL ERROR: Resource bundle not found!"
+             exit 1
+          fi
+          
+          echo "Re-signing application..."
+          codesign --force --deep --sign - "$BUNDLE_PATH"
+          
+          # Debug: List app structure
+          ls -R "$BUNDLE_PATH"
           
           # Create/Overwrite Info.plist
           <?xml version="1.0" encoding="UTF-8"?>

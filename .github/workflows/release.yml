@@ -42,6 +42,24 @@ jobs:
           # Copy Executable
           cp "$EXECUTABLE_PATH" "$MACOS_PATH/"
           
+          # Copy Resource Bundle (ValetBar_ValetBar.bundle)
+          # It should be in the same folder as the executable
+          BUILD_DIR=$(dirname "$EXECUTABLE_PATH")
+          RESOURCE_BUNDLE="$BUILD_DIR/ValetBar_ValetBar.bundle"
+          
+          if [ -d "$RESOURCE_BUNDLE" ]; then
+              echo "Copying resource bundle from $RESOURCE_BUNDLE"
+              cp -R "$RESOURCE_BUNDLE" "$RESOURCES_PATH/"
+          else
+             echo "Resource bundle not found at $RESOURCE_BUNDLE, trying fallback search..."
+             RESOURCE_BUNDLE=$(find .build -name "ValetBar_ValetBar.bundle" -type d | head -n 1)
+             if [ -n "$RESOURCE_BUNDLE" ]; then
+                cp -R "$RESOURCE_BUNDLE" "$RESOURCES_PATH/"
+             else
+                echo "WARNING: Resource bundle not found! App may crash."
+             fi
+          fi
+          
           # Create Info.plist
           # LSUIElement=1 hides the app from the Dock (Menu bar app behavior)
           cat > "$CONTENTS_PATH/Info.plist" <<EOF

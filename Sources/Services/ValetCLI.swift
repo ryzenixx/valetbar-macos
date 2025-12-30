@@ -41,24 +41,19 @@ class ValetCLI {
         let valetPath = getValetPath()
         let process = Process()
         
-        // Construct the environment
         var env = ProcessInfo.processInfo.environment
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         env["HOME"] = home
         
-        // Important: Valet needs PHP, so we must include common paths in PATH
         let newPath = "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:\(home)/.composer/vendor/bin"
         env["PATH"] = newPath
         
         process.environment = env
         
-        print("Executing: \(valetPath) \(arguments.joined(separator: " "))")
-        
         if valetPath.hasPrefix("/") {
             process.executableURL = URL(fileURLWithPath: valetPath)
             process.arguments = arguments
         } else {
-            // Fallback: Use user's shell to hopefully find 'valet'
             process.executableURL = URL(fileURLWithPath: "/bin/zsh")
             process.arguments = ["-l", "-c", "valet " + arguments.joined(separator: " ")]
         }

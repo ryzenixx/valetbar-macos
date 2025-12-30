@@ -46,10 +46,8 @@ class UpdateService: ObservableObject {
         isDownloading = true
         
         do {
-            // 1. Download DMG
             let (localURL, _) = try await URLSession.shared.download(from: url)
             
-            // 2. Move to specific temp location
             let fileManager = FileManager.default
             let tempDir = fileManager.temporaryDirectory.appendingPathComponent("ValetBar_Update")
             try? fileManager.createDirectory(at: tempDir, withIntermediateDirectories: true)
@@ -60,26 +58,18 @@ class UpdateService: ObservableObject {
             }
             try fileManager.moveItem(at: localURL, to: targetURL)
             
-            // 3. Mount DMG
-            print("Mounting DMG at \(targetURL.path)...")
             let mountProcess = Process()
             mountProcess.executableURL = URL(fileURLWithPath: "/usr/bin/hdiutil")
             mountProcess.arguments = ["attach", targetURL.path]
             try mountProcess.run()
             mountProcess.waitUntilExit()
             
-            // 4. Open the mounted volume
-            // The volume name is usually "ValetBar Installer" (set in release.yml)
-            // But we can try to open the generic volume path if we knew the mount point.
-            // Since hdiutil attaches to /Volumes/ValetBar Installer by default:
             let volumePath = "/Volumes/ValetBar Installer"
             
-            // Wait slightly for mount
             try await Task.sleep(nanoseconds: 1_000_000_000)
             
             NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: volumePath)
             
-            // 5. Quit App to allow overwrite
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 NSApplication.shared.terminate(nil)
             }

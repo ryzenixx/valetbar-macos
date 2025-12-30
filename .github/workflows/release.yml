@@ -49,11 +49,8 @@ jobs:
               # 1. Standard Resources location
               cp -R "$RESOURCE_BUNDLE" "$RESOURCES_PATH/"
               
-              # 2. Adjacent to binary (Common for CLI tools)
+              # 2. Adjacent to binary (Fallback for CLI tools)
               cp -R "$RESOURCE_BUNDLE" "$MACOS_PATH/"
-              
-              # 3. Root of App Bundle (Matches the error message path /Applications/ValetBar.app/...)
-              cp -R "$RESOURCE_BUNDLE" "$BUNDLE_PATH/"
           else
              echo "CRITICAL ERROR: ARM64 Resource bundle not found at $RESOURCE_BUNDLE"
              exit 1

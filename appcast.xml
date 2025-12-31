@@ -3,12 +3,12 @@
     <channel>
         <title>ValetBar</title>
         <item>
-            <title>v1.0.44</title>
-            <pubDate>Wed, 31 Dec 2025 09:07:54 +0000</pubDate>
-            <sparkle:version>v1.0.44</sparkle:version>
-            <sparkle:shortVersionString>v1.0.44</sparkle:shortVersionString>
+            <title>v1.0.46</title>
+            <pubDate>Wed, 31 Dec 2025 09:24:03 +0000</pubDate>
+            <sparkle:version>v1.0.46</sparkle:version>
+            <sparkle:shortVersionString>v1.0.46</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/ryzenixx/valetbar-macos/releases/download/ValetBar.dmg" length="1033310" type="application/octet-stream" sparkle:edSignature="8cvo8NR4IGTz5G8aPamig1UoyMBFaPFs4KuESrSwT6/2KW6UYD6oC3UIjfG/1ZaaoHaySm4guAsT2+WKFcF6Ag=="/>
+            <enclosure url="https://github.com/ryzenixx/valetbar-macos/releases/download/ValetBar.dmg" length="1033369" type="application/octet-stream" sparkle:edSignature="+28q8XWo2QlOJNRD1lF7gGk6xYonDyt+eJ7nLm7CvzJjSLCnz/3ni3QpyjThlPhJpWznpz9Msw0o92M41vTABA=="/>
         </item>
     </channel>
 </rss>

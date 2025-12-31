@@ -3,7 +3,7 @@
 
   <img src=".github/assets/valettab.png" alt="ValetBar" width="300">
 
-  # ValetBar 🤵
+  # ValetBar 🐦
 
   **The missing native companion for Laravel Valet on macOS.**
 
@@ -67,7 +67,7 @@ Built with modern Apple technologies for maximum performance and native feel.
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to build the project from source and submit pull requests.
+We welcome contributions! Please see our [CONTRIBUTING.md](https://github.com/ryzenixx/valetbar-macos?tab=contributing-ov-file) for details on how to build the project from source and submit pull requests.
 
 ## 📄 License
 

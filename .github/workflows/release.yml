@@ -145,9 +145,9 @@ jobs:
           # URL Prefix where the DMG *will* be
           DOWNLOAD_URL="https://github.com/ryzenixx/valetbar-macos/releases/download/${{ github.ref_name }}"
           
-          ./sparkle_tools/bin/generate_appcast \
+          echo "$SPARKLE_PRIVATE_KEY" | ./sparkle_tools/bin/generate_appcast \
              --download-url-prefix "$DOWNLOAD_URL" \
-             -s "$SPARKLE_PRIVATE_KEY" \
+             --ed-key-file - \
              release_assets
              
           cat appcast.xml

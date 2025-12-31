@@ -95,17 +95,35 @@ jobs:
           security import certificate.p12 -P "${{ secrets.MACOS_CERTIFICATE_PWD }}" -A -t agg -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
           
-          # Sign the app
+          # Allow codesign to access the key
+          security set-key-partition-list -S apple-tool:,apple: -s -k "${{ secrets.MACOS_CI_KEYCHAIN_PWD }}" $KEYCHAIN_PATH
+          
           # Sign the app
           echo "Finding signing identity..."
           security find-identity -v -p codesigning
           
-          # Extract the First Valid Identity Hash
-          IDENTITY_HASH=$(security find-identity -v -p codesigning | head -1 | awk '{print $2}')
+          # Smart Identity Extraction
+          # 1. Try to find the user's specific certificate first
+          IDENTITY_HASH=$(security find-identity -v -p codesigning | grep "Mael DURET" | head -1 | awk '{print $2}')
           
+          # 2. Fallback: Take the first valid one if specific extraction failed
           if [ -z "$IDENTITY_HASH" ]; then
-            echo "CRITICAL ERROR: No valid signing identity found in keychain!"
-            exit 1
+              IDENTITY_HASH=$(security find-identity -v -p codesigning | head -1 | awk '{print $2}')
+          fi
+          
+          if [ -z "$IDENTITY_HASH" ] || [ "$IDENTITY_HASH" == "valid" ]; then
+            echo "CRITICAL ERROR: No valid signing identity found! Check if WWDR Intermediate certificate is installed on runner."
+            # Attempt to download Apple WWDR just in case (Common fix for '0 valid identities' on CI)
+            echo "Downloading Apple WWDR..."
+            curl -o AppleWWDRCA.cer https://developer.apple.com/certificationauthority/AppleWWDRCA.cer
+            security import AppleWWDRCA.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign
+            
+            # Retry finding identity
+            IDENTITY_HASH=$(security find-identity -v -p codesigning | head -1 | awk '{print $2}')
+            if [ -z "$IDENTITY_HASH" ]; then
+                 echo "Still no identity found. Aborting."
+                 exit 1
+            fi
           fi
           
           echo "Signing with identity hash: $IDENTITY_HASH"

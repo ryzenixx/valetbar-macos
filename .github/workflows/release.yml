@@ -23,12 +23,10 @@ jobs:
         run: |
           sed -i '' 's/appVersion = ".*"/appVersion = "${{ github.ref_name }}"/' Sources/App/AppConfig.swift
 
-      - name: Build and Sign Application
+      - name: Build Application
         run: |
-          # 1. Clean Build
-          swift package clean
-          
-          # 2. Build for ARM64 Release
+          cat Package.swift # Debug: Verify content
+          rm -rf .build # FORCE CLEAN
           swift build -c release --arch arm64
           
           # 3. Define Strict Paths

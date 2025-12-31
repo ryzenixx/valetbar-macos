@@ -151,8 +151,17 @@ jobs:
           echo "Signing Autoupdate at: $AUTOUPDATE_PATH"
           /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" "$AUTOUPDATE_PATH"
           
-          # Sign Updater.app (if present in Resources, though usually it's just Autoupdate in v2)
-          # Sparkle 2 layout: Versions/B/Resources/Autoupdate (binary)
+          # Sign Updater.app (UI Helper) - Mandatory for Sparkle 2 UI with Hardened Runtime
+          UPDATER_APP_PATH=$(find "$SPARKLE_FRAMEWORK" -name "Updater.app" -type d | head -n 1)
+          if [ -n "$UPDATER_APP_PATH" ]; then
+             echo "Signing Updater.app at: $UPDATER_APP_PATH"
+             # Sign inner binary of Updater.app
+             /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" "$UPDATER_APP_PATH/Contents/MacOS/Updater"
+             # Sign the wrapper
+             /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" "$UPDATER_APP_PATH"
+          else
+             echo "WARNING: Updater.app not found. This might be a binary-only Sparkle distribution?"
+          fi
           
           # Sign the Framework itself
           /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" "$SPARKLE_FRAMEWORK"

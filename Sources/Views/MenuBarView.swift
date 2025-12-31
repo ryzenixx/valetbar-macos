@@ -75,8 +75,11 @@ struct MenuBarView: View {
             }
             window.titleVisibility = .hidden
             window.titlebarAppearsTransparent = true
+            window.backgroundColor = .clear
+            window.isOpaque = false
         })
         .background(CursorFixView())
+        .background(VisualEffectView(material: .popover, blendingMode: .behindWindow, state: .active))
         .onAppear {
             Task {
                 await viewModel.loadData()
@@ -212,7 +215,6 @@ struct MenuBarView: View {
             }
             
         }
-        .background(Color(nsColor: .windowBackgroundColor))
     }
 }
 

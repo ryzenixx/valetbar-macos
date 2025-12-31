@@ -152,7 +152,6 @@ struct SettingsView: View {
             }
             .padding(.bottom, 16)
         }
-        .background(Color(nsColor: .windowBackgroundColor))
         .background(CursorFixView())
     }
 }

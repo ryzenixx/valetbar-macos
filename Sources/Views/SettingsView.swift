@@ -136,7 +136,7 @@ struct SettingsView: View {
                     .font(.caption2)
                     .foregroundColor(.secondary.opacity(0.6))
                 #else
-                Text(AppConfig.appVersion)
+                Text("version \(AppConfig.appVersion) | release build")
                     .font(.caption2)
                     .foregroundColor(.secondary.opacity(0.6))
                 #endif

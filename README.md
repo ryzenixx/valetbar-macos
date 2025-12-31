@@ -25,37 +25,15 @@
 
 ## ✨ Features
 
-<table>
-  <tr>
-    <td width="50%">
-      <h3>🚦 Instant Control</h3>
-      <p>Start, Stop, and Restart your Valet services (Nginx, PHP, DnsMasq) with a single click. No more sudo typing.</p>
-    </td>
-    <td width="50%">
-      <h3>🔒 SSL & Domain Status</h3>
-      <p>See all your parked <code>.test</code> domains at a glance. Instantly identify which sites are secured (SSL) and which are not.</p>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <h3>💎 Native Design</h3>
-      <p>Built with SwiftUI and <strong>Native Visual Effects</strong>. It feels right at home on macOS Sequoia/Sonoma, respecting system vibrancy and blur.</p>
-    </td>
-    <td width="50%">
-      <h3>⚡️ Quick Actions</h3>
-      <p>Click any site to open it in your browser immediately. Productivity boost for multi-site management.</p>
-    </td>
-  </tr>
-</table>
+- **Instant Control** — Start, Stop, and Restart Valet services (Nginx, PHP, DnsMasq) in one click.
+- **Site Management** — View all your parked `.test` domains with live SSL status indicators.
+- **Native Experience** — Built with SwiftUI and `NSVisualEffectView` for that premium macOS feel.
+- **Quick Actions** — Instant browser navigation for any local site.
 
-## 🛠 Tech Stack
+## 🛠 Under the Hood
 
-Built with modern Apple technologies for maximum performance and native feel.
-
-- **Swift 6.2.3** & **SwiftUI**
-- **Sparkle 2**: Robust, sandboxed auto-update mechanism.
-- **AppKit Interop**: Uses `NSVisualEffectView` for premium glass materials.
-- **Hardened Runtime**: Fully signed and notarized for security.
+ValetBar is built with **Swift 6.2.3** and **SwiftUI**, adhering to the highest standards of macOS development.
+It includes **Sparkle 2** for secure, sandboxed auto-updates and is fully signed with the **Hardened Runtime**.
 
 ## 🚀 Installation
 

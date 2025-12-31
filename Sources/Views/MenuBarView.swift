@@ -201,28 +201,6 @@ struct MenuBarView: View {
                 }
             }
             
-            Divider()
-            
-            VStack(spacing: 4) {
-                Text(AppConfig.appName)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                
-                Text("version \(AppConfig.appVersion)")
-                    .font(.caption2)
-                    .foregroundColor(.secondary.opacity(0.6))
-                
-                Button("View on GitHub") {
-                    if let url = URL(string: "https://github.com/ryzenixx/valetbar-macos") {
-                        NSWorkspace.shared.open(url)
-                    }
-                }
-                .buttonStyle(.link)
-                .font(.caption2)
-            }
-            .padding(.vertical, 12)
-            .frame(maxWidth: .infinity)
-            .background(.thinMaterial)
         }
         .background(Color(nsColor: .windowBackgroundColor))
     }

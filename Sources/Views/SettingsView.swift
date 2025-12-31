@@ -104,6 +104,27 @@ struct SettingsView: View {
             }
             
             Spacer()
+            
+            // Footer
+            VStack(spacing: 2) {
+                Text(AppConfig.appName)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                
+                Text(AppConfig.appVersion)
+                    .font(.caption2)
+                    .foregroundColor(.secondary.opacity(0.6))
+                
+                Button("View on GitHub") {
+                    if let url = URL(string: "https://github.com/ryzenixx/valetbar-macos") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+                .buttonStyle(.link)
+                .font(.caption2)
+                .padding(.top, 2)
+            }
+            .padding(.bottom, 16)
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .background(CursorFixView())

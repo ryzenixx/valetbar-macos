@@ -138,9 +138,18 @@ jobs:
           
           SPARKLE_FRAMEWORK="$FRAMEWORKS_PATH/Sparkle.framework"
           
-          # Sign Autoupdate
-          # We use the Resources symlink to be robust against version changes (A vs B)
-          /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" "$SPARKLE_FRAMEWORK/Resources/Autoupdate"
+          # Sign Autoupdate (Dynamic Search)
+          # We use 'find' to locate the binary to be absolutely sure of the path
+          AUTOUPDATE_PATH=$(find "$SPARKLE_FRAMEWORK" -name "Autoupdate" -type f | head -n 1)
+          
+          if [ -z "$AUTOUPDATE_PATH" ]; then
+             echo "CRITICAL ERROR: Autoupdate binary not found in Sparkle.framework"
+             find "$SPARKLE_FRAMEWORK" # Log structure for debugging
+             exit 1
+          fi
+          
+          echo "Signing Autoupdate at: $AUTOUPDATE_PATH"
+          /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" "$AUTOUPDATE_PATH"
           
           # Sign Updater.app (if present in Resources, though usually it's just Autoupdate in v2)
           # Sparkle 2 layout: Versions/B/Resources/Autoupdate (binary)

@@ -33,8 +33,8 @@ struct MenuBarView: View {
     }
     
     private var headerIcon: NSImage {
-        // Try Bundle.module (Dev/Xcode)
-        #if SWIFT_PACKAGE
+        // Try Bundle.module (Dev/Xcode - DEBUG ONLY)
+        #if DEBUG
         if let moduleUrl = Bundle.module.url(forResource: "Assets/MenuBarIcon", withExtension: "png"),
            let image = NSImage(contentsOf: moduleUrl) {
             image.isTemplate = true

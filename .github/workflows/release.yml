@@ -44,6 +44,9 @@ jobs:
           # 5. Copy Executable
           cp "$EXECUTABLE_PATH" "$MACOS_PATH/"
           
+          # Fix RPATH for bundled app
+          install_name_tool -add_rpath "@executable_path/../Frameworks" "$MACOS_PATH/ValetBar"
+          
           # 6. Copy Resources
           cp "Sources/Assets/MenuBarIcon.png" "$RESOURCES_PATH/"
           

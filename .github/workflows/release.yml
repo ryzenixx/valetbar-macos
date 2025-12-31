@@ -110,6 +110,10 @@ jobs:
           MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
           MACOS_CI_KEYCHAIN_PWD: ${{ secrets.MACOS_CI_KEYCHAIN_PWD }}
         run: |
+          # Define Paths (Re-export needed for new step)
+          export BUNDLE_PATH="./ValetBar.app"
+          export FRAMEWORKS_PATH="$BUNDLE_PATH/Contents/Frameworks"
+
           # Import Certificate & WWDR
           echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
           security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain

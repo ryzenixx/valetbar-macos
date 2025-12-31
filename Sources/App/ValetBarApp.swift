@@ -17,7 +17,7 @@ struct ValetBarApp: App {
             }
         }
         
-        print("WARNING: Could not load MenuBarIcon.png from bundle")
+        // print("WARNING: Could not load MenuBarIcon.png from bundle")
         return NSImage(systemSymbolName: "server.rack", accessibilityDescription: nil) ?? NSImage()
     }
     

@@ -18,57 +18,38 @@ jobs:
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
           sed -i '' "s/static let appVersion = \".*\"/static let appVersion = \"$VERSION\"/" Sources/App/AppConfig.swift
-          
-      - name: Build App (Apple Silicon)
-        run: |
-          sed -i '' 's/appVersion = ".*"/appVersion = "${{ github.ref_name }}"/' Sources/App/AppConfig.swift
 
       - name: Build Application
         run: |
-          cat Package.swift # Debug: Verify content
-          rm -rf .build # FORCE CLEAN
+          rm -rf .build
           swift build -c release --arch arm64
           
-          # 3. Define Strict Paths
           export EXECUTABLE_PATH=".build/arm64-apple-macosx/release/ValetBar"
           export BUNDLE_PATH="./ValetBar.app"
           export CONTENTS_PATH="$BUNDLE_PATH/Contents"
           export RESOURCES_PATH="$CONTENTS_PATH/Resources"
           export MACOS_PATH="$CONTENTS_PATH/MacOS"
           
-          # 4. Create Bundle Structure
           rm -rf "$BUNDLE_PATH"
           mkdir -p "$MACOS_PATH"
           mkdir -p "$RESOURCES_PATH"
           
-          # 5. Copy Executable
           cp "$EXECUTABLE_PATH" "$MACOS_PATH/"
           
-          # Fix RPATH for bundled app
           install_name_tool -add_rpath "@executable_path/../Frameworks" "$MACOS_PATH/ValetBar"
           
-          # 6. Copy Resources
           cp "Sources/Assets/MenuBarIcon.png" "$RESOURCES_PATH/"
           
-          # 7. Embed Frameworks (Sparkle)
           export FRAMEWORKS_PATH="$CONTENTS_PATH/Frameworks"
           mkdir -p "$FRAMEWORKS_PATH"
           
-          # Find Sparkle.framework in build dir
-          # SPM typically puts it in .build/arm64-apple-macosx/release/Sparkle_Sparkle.bundle (implicit)
-          # OR strictly checked out as a product.
-          # Actually, for a binary dependency, it might be in .build/artifacts or just referenced.
-          # Let's try to copy everything ending in .framework from the build dir.
           find .build -name "Sparkle.framework" -exec cp -R {} "$FRAMEWORKS_PATH/" \;
           
-          # Verify Sparkle exists
           if [ ! -d "$FRAMEWORKS_PATH/Sparkle.framework" ]; then
-              echo "CRITICAL ERROR: Sparkle.framework not found in build output!"
-              find .build -name "Sparkle.framework" # Debug
+              echo "CRITICAL ERROR: Sparkle.framework not found"
               exit 1
           fi
           
-          # 7. Create Info.plist (With Sparkle Config)
           cat > "$CONTENTS_PATH/Info.plist" <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -110,66 +91,41 @@ jobs:
           MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
           MACOS_CI_KEYCHAIN_PWD: ${{ secrets.MACOS_CI_KEYCHAIN_PWD }}
         run: |
-          # Define Paths (Re-export needed for new step)
           export BUNDLE_PATH="./ValetBar.app"
           export FRAMEWORKS_PATH="$BUNDLE_PATH/Contents/Frameworks"
 
-          # Import Certificate & WWDR
           echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
           security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
           
-          # Download Apple WWDR Certificates
           curl -O https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
           security import AppleWWDRCAG3.cer -k build.keychain -T /usr/bin/codesign
 
           security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
           
-          # Find Identity
           IDENTITY_HASH=$(security find-identity -v -p codesigning build.keychain | grep -oE '"[^"]+"' | head -1 | tr -d '"')
           echo "Signing with Identity: $IDENTITY_HASH"
           
-          # Sign
-          # Sign Sparkle Inner Components (Required for Hardened Runtime)
-          # Note: Autoupdate and Updater need specific handling if we were Sandboxed, but for Hardened Runtime
-          # we just need to ensure they are signed with the same identity.
-          
           SPARKLE_FRAMEWORK="$FRAMEWORKS_PATH/Sparkle.framework"
           
-          # Sign Autoupdate (Dynamic Search)
-          # We use 'find' to locate the binary to be absolutely sure of the path
           AUTOUPDATE_PATH=$(find "$SPARKLE_FRAMEWORK" -name "Autoupdate" -type f | head -n 1)
           
           if [ -z "$AUTOUPDATE_PATH" ]; then
-             echo "CRITICAL ERROR: Autoupdate binary not found in Sparkle.framework"
-             find "$SPARKLE_FRAMEWORK" # Log structure for debugging
+             echo "CRITICAL ERROR: Autoupdate binary not found"
              exit 1
           fi
           
-          echo "Signing Autoupdate at: $AUTOUPDATE_PATH"
           /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" "$AUTOUPDATE_PATH"
           
-          # Sign Updater.app (UI Helper) - Mandatory for Sparkle 2 UI with Hardened Runtime
           UPDATER_APP_PATH=$(find "$SPARKLE_FRAMEWORK" -name "Updater.app" -type d | head -n 1)
           if [ -n "$UPDATER_APP_PATH" ]; then
-             echo "Signing Updater.app at: $UPDATER_APP_PATH"
-             # Sign inner binary of Updater.app
              /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" "$UPDATER_APP_PATH/Contents/MacOS/Updater"
-             # Sign the wrapper
              /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" "$UPDATER_APP_PATH"
-          else
-             echo "WARNING: Updater.app not found. This might be a binary-only Sparkle distribution?"
           fi
           
-          # Sign the Framework itself
           /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" "$SPARKLE_FRAMEWORK"
-          
-          # Sign the Main App (Non-deep, since we signed inside manually? 
-          # Or stick with deep but verify previous steps. 
-          # Actually, 'codesign --deep' is often deprecated. Better to sign inside-out manually or let it be.
-          # But for the "Not allowed to modify" error, explicit signing of Autoupdate is the known fix.)
           
           /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" ./ValetBar.app/Contents/MacOS/ValetBar
           /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" ./ValetBar.app
@@ -192,24 +148,17 @@ jobs:
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.MACOS_SPARKLE_PRIVATE_KEY }}
         run: |
-          # 1. Download Sparkle Tools
           curl -L -o sparkle.tar.xz https://github.com/sparkle-project/Sparkle/releases/download/2.6.0/Sparkle-2.6.0.tar.xz
           mkdir sparkle_tools
           tar -xf sparkle.tar.xz -C sparkle_tools
           
-          # 2. Sign DMG with Sparkle Key
-          # Write private key to file
           echo "$SPARKLE_PRIVATE_KEY" > sparkle_key.pem
           
-          # Sign
           ./sparkle_tools/bin/sign_update "ValetBar.dmg" --ed-key-file sparkle_key.pem
           
-          # 3. Generate Appcast
-          # We need to simulate the release structure for generate_appcast
           mkdir release_assets
           cp "ValetBar.dmg" release_assets/
           
-          # URL Prefix where the DMG *will* be
           DOWNLOAD_URL="https://github.com/ryzenixx/valetbar-macos/releases/download/${{ github.ref_name }}/"
           
           echo "$SPARKLE_PRIVATE_KEY" | ./sparkle_tools/bin/generate_appcast \
@@ -221,16 +170,12 @@ jobs:
 
       - name: Commit Appcast to Repo
         run: |
-          # Setup Git
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           
-          # Add appcast.xml
           mv release_assets/appcast.xml .
           git add appcast.xml
           
-          # Commit and Push
-          # Note: We are in a detached head state usually, need to fetch and checkout main
           git fetch origin main
           git checkout main
           git pull origin main

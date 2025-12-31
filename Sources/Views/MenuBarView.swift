@@ -33,10 +33,12 @@ struct MenuBarView: View {
     }
     
     private var headerIcon: NSImage {
-        if let path = Bundle.appModule.path(forResource: "MenuBarIcon", ofType: "png"),
-           let image = NSImage(contentsOfFile: path) {
-            image.isTemplate = true
-            return image
+        if let resourcePath = Bundle.main.resourcePath {
+            let iconPath = resourcePath + "/MenuBarIcon.png"
+            if let image = NSImage(contentsOfFile: iconPath) {
+                 image.isTemplate = true
+                 return image
+            }
         }
         return NSImage(systemSymbolName: "server.rack", accessibilityDescription: nil) ?? NSImage()
     }
@@ -223,7 +225,7 @@ struct MenuBarView: View {
             .frame(maxWidth: .infinity)
             .background(.thinMaterial)
         }
-        .background(Color("WindowBackground", bundle: .appModule))
+        .background(Color(nsColor: .windowBackgroundColor))
     }
 }
 

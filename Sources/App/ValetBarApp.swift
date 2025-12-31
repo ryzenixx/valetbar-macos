@@ -6,11 +6,14 @@ struct ValetBarApp: App {
     @StateObject private var viewModel = ValetViewModel()
     
     private var menuBarIcon: NSImage {
-        if let path = Bundle.appModule.path(forResource: "MenuBarIcon", ofType: "png"),
-           let image = NSImage(contentsOfFile: path) {
-            image.isTemplate = true
-            image.size = CGSize(width: 15, height: 15)
-            return image
+        // Manually look for icon in Resources
+        if let resourcePath = Bundle.main.resourcePath {
+            let iconPath = resourcePath + "/MenuBarIcon.png"
+            if let image = NSImage(contentsOfFile: iconPath) {
+                image.isTemplate = true
+                image.size = CGSize(width: 15, height: 15)
+                return image
+            }
         }
         
         print("WARNING: Could not load MenuBarIcon.png from bundle")

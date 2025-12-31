@@ -113,7 +113,7 @@ struct SettingsView: View {
             
             Spacer()
         }
-        .background(Color("WindowBackground", bundle: .appModule))
+        .background(Color(nsColor: .windowBackgroundColor))
         .background(CursorFixView())
     }
 }

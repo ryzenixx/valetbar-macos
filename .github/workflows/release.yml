@@ -21,94 +21,70 @@ jobs:
           
       - name: Build App (Apple Silicon)
         run: |
-          swift package clean
-          swift build -c release --arch arm64
+          sed -i '' 's/appVersion = ".*"/appVersion = "${{ github.ref_name }}"/' Sources/App/AppConfig.swift
 
-      - name: Create and Sign .app Bundle
+      - name: Create ExportOptions.plist
         run: |
-          APP_NAME="ValetBar"
-          # Explicit path for Apple Silicon build
-          BUILD_DIR=".build/arm64-apple-macosx/release"
-          EXECUTABLE_PATH="$BUILD_DIR/$APP_NAME"
-          
-          # Verify executable exists
-          if [ ! -f "$EXECUTABLE_PATH" ]; then
-             echo "CRITICAL ERROR: Executable not found at $EXECUTABLE_PATH"
-             exit 1
-          fi
-          
-          echo "Using executable: $EXECUTABLE_PATH"
-          
-          BUNDLE_PATH="$APP_NAME.app"
-          CONTENTS_PATH="$BUNDLE_PATH/Contents"
-          MACOS_PATH="$CONTENTS_PATH/MacOS"
-          RESOURCES_PATH="$CONTENTS_PATH/Resources"
-          
-          mkdir -p "$MACOS_PATH"
-          mkdir -p "$RESOURCES_PATH"
-          
-          cp "$EXECUTABLE_PATH" "$MACOS_PATH/"
-          
-          # Copy Resource Bundle
-          # Now we know exactly where it is for arm64
-          RESOURCE_BUNDLE="$BUILD_DIR/ValetBar_ValetBar.bundle"
-          
-          if [ -d "$RESOURCE_BUNDLE" ]; then
-              echo "Copying resource bundle from $RESOURCE_BUNDLE"
-              cp -R "$RESOURCE_BUNDLE" "$RESOURCES_PATH/"
-          else
-             echo "CRITICAL ERROR: Resource bundle not found at $RESOURCE_BUNDLE"
-             exit 1
-          fi
-          
-          echo "Re-signing application..."
-          codesign --force --deep --sign - "$BUNDLE_PATH"
-          
-          # Debug: List app structure
-          ls -R "$BUNDLE_PATH"
-          
-          # Create/Overwrite Info.plist
-          cat > "$CONTENTS_PATH/Info.plist" <<EOF
+          cat > ExportOptions.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
-              <key>CFBundleExecutable</key>
-              <string>$APP_NAME</string>
-              <key>CFBundleIdentifier</key>
-              <string>com.valetbar.app</string>
-              <key>CFBundleName</key>
-              <string>$APP_NAME</string>
-              <key>CFBundleShortVersionString</key>
-              <string>${GITHUB_REF#refs/tags/v}</string>
-              <key>CFBundleVersion</key>
-              <string>${GITHUB_RUN_NUMBER}</string>
-              <key>LSUIElement</key>
-              <true/>
-              <key>NSHighResolutionCapable</key>
-              <true/>
+              <key>method</key>
+              <string>ad-hoc</string>
+              <key>signingStyle</key>
+              <string>manual</string>
+              <key>teamID</key>
+              <string></string>
           </dict>
           </plist>
           EOF
-          
+
+      - name: Build and Archive
+        run: |
+          xcodebuild -scheme ValetBar \
+            -configuration Release \
+            -destination 'platform=macOS,arch=arm64' \
+            -archivePath ValetBar.xcarchive \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED="NO" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            CODE_SIGNING_ALLOWED="NO" \
+            archive
+
+      - name: Export Archive
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath ValetBar.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath Export
+
       - name: Create DMG
         run: |
-          brew install create-dmg
-          test -f ValetBar.dmg && rm ValetBar.dmg
+          APP_PATH="Export/ValetBar.app"
+          
+          # Verify App Exists
+          if [ ! -d "$APP_PATH" ]; then
+            echo "Error: App not found at $APP_PATH"
+            exit 1
+          fi
+          
+          # Create DMG
+          npm install -g create-dmg
           create-dmg \
-            --volname "ValetBar Installer" \
-            --volicon "Sources/Resources/MenuBarIcon.png" \
+            --volname "Valet Bar Installer" \
             --window-pos 200 120 \
             --window-size 800 400 \
             --icon-size 100 \
             --icon "ValetBar.app" 200 190 \
             --hide-extension "ValetBar.app" \
             --app-drop-link 600 185 \
-            "ValetBar.dmg" \
-            "ValetBar.app"
+            "ValetBar-${{ github.ref_name }}.dmg" \
+            "$APP_PATH"
 
-      - name: Upload Release Asset
+      - name: Upload Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: ValetBar.dmg
+          files: ValetBar-${{ github.ref_name }}.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

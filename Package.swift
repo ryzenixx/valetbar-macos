@@ -19,7 +19,9 @@ let package = Package(
                 .product(name: "Sparkle", package: "Sparkle")
             ],
             path: "Sources",
-            exclude: ["Assets"] // Explicitly exclude Assets to prevent Bundle Accessor generation
+            resources: [
+                .copy("Assets")
+            ]
         ),
     ]
 )

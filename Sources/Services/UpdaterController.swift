@@ -9,7 +9,14 @@ class UpdaterController: NSObject, ObservableObject, SPUUpdaterDelegate {
     
     override init() {
         super.init()
-        self.updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: self, userDriverDelegate: nil)
+        // Safety check: Sparkle requires a valid Bundle ID.
+        // In local debug (swift run or xed), this might be missing.
+        // If missing, we skip Sparkle initialization to prevent crash.
+        if Bundle.main.bundleIdentifier != nil {
+            self.updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: self, userDriverDelegate: nil)
+        } else {
+            print("⚠️ Bundle ID not found (Debug Mode). automatic updates disabled.")
+        }
     }
     
     func checkForUpdates() {

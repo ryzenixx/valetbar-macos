@@ -72,20 +72,37 @@ struct SettingsView: View {
                             .padding(.horizontal, 4)
                         
                         Button(action: {
+                            #if !DEBUG
                             updaterController.checkForUpdates()
+                            #endif
                         }) {
                             HStack {
                                 Image(systemName: "arrow.triangle.2.circlepath")
+                                    #if DEBUG
+                                    .foregroundColor(.secondary)
+                                    #else
                                     .foregroundColor(.primary)
+                                    #endif
                                     .font(.system(size: 16))
                                 
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("Check for Updates")
                                         .font(.system(size: 13, weight: .medium))
+                                        #if DEBUG
+                                        .foregroundColor(.secondary)
+                                        #else
                                         .foregroundColor(.primary)
+                                        #endif
+                                    
+                                    #if DEBUG
+                                    Text("Updater disabled in dev build")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.secondary)
+                                    #else
                                     Text("Current Version: \(AppConfig.appVersion)")
                                         .font(.system(size: 11))
                                         .foregroundColor(.secondary)
+                                    #endif
                                 }
                                 Spacer()
                                 Image(systemName: "chevron.right")
@@ -97,6 +114,9 @@ struct SettingsView: View {
                             .cornerRadius(8)
                         }
                         .buttonStyle(.plain)
+                        #if DEBUG
+                        .disabled(true)
+                        #endif
                     }
 
                 }
@@ -111,9 +131,15 @@ struct SettingsView: View {
                     .font(.caption2)
                     .foregroundColor(.secondary)
                 
+                #if DEBUG
+                Text("version 0.0.0 | development build")
+                    .font(.caption2)
+                    .foregroundColor(.secondary.opacity(0.6))
+                #else
                 Text(AppConfig.appVersion)
                     .font(.caption2)
                     .foregroundColor(.secondary.opacity(0.6))
+                #endif
                 
                 Button("View on GitHub") {
                     if let url = URL(string: "https://github.com/ryzenixx/valetbar-macos") {

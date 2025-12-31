@@ -23,23 +23,6 @@ jobs:
         run: |
           sed -i '' 's/appVersion = ".*"/appVersion = "${{ github.ref_name }}"/' Sources/App/AppConfig.swift
 
-      - name: Create ExportOptions.plist
-        run: |
-          cat > ExportOptions.plist <<EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>method</key>
-              <string>ad-hoc</string>
-              <key>signingStyle</key>
-              <string>manual</string>
-              <key>teamID</key>
-              <string></string>
-          </dict>
-          </plist>
-          EOF
-
       - name: Build and Archive
         run: |
           xcodebuild -scheme ValetBar \
@@ -52,12 +35,11 @@ jobs:
             CODE_SIGNING_ALLOWED="NO" \
             archive
 
-      - name: Export Archive
+      - name: Extract App from Archive
         run: |
-          xcodebuild -exportArchive \
-            -archivePath ValetBar.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath Export
+          # Extract .app directly from xcarchive (Bypassing exportArchive which requires certs)
+          mkdir -p Export
+          cp -R "ValetBar.xcarchive/Products/Applications/ValetBar.app" "Export/"
 
       - name: Create DMG
         run: |

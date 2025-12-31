@@ -11,7 +11,7 @@
 
 ## ✨ Features
 
-- **Menu Bar Control Center**: Check the status of Valet, Nginx, PHP, and DnsMasq at a glance.
+- **Menu Bar Control Center**: Check the global status of Valet at a glance.
 - **One-Click Actions**: Start, Stop, and Restart your Valet services instantly.
 - **Smart Proxy List**: View all your parked sites (`.test` domains) with their SSL status.
 - **Instant Navigation**: Click any proxy to open it directly in your browser.

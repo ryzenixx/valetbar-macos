@@ -128,7 +128,29 @@ jobs:
           echo "Signing with Identity: $IDENTITY_HASH"
           
           # Sign
-          /usr/bin/codesign --force --deep --options runtime --sign "$IDENTITY_HASH" ./ValetBar.app
+          # Sign Sparkle Inner Components (Required for Hardened Runtime)
+          # Note: Autoupdate and Updater need specific handling if we were Sandboxed, but for Hardened Runtime
+          # we just need to ensure they are signed with the same identity.
+          
+          SPARKLE_FRAMEWORK="$FRAMEWORKS_PATH/Sparkle.framework"
+          
+          # Sign Autoupdate
+          # We use the Resources symlink to be robust against version changes (A vs B)
+          /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" "$SPARKLE_FRAMEWORK/Resources/Autoupdate"
+          
+          # Sign Updater.app (if present in Resources, though usually it's just Autoupdate in v2)
+          # Sparkle 2 layout: Versions/B/Resources/Autoupdate (binary)
+          
+          # Sign the Framework itself
+          /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" "$SPARKLE_FRAMEWORK"
+          
+          # Sign the Main App (Non-deep, since we signed inside manually? 
+          # Or stick with deep but verify previous steps. 
+          # Actually, 'codesign --deep' is often deprecated. Better to sign inside-out manually or let it be.
+          # But for the "Not allowed to modify" error, explicit signing of Autoupdate is the known fix.)
+          
+          /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" ./ValetBar.app/Contents/MacOS/ValetBar
+          /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" ./ValetBar.app
 
       - name: Create DMG
         run: |

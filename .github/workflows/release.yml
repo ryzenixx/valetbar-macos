@@ -30,33 +30,24 @@ jobs:
           swift build -c release --arch arm64
           
           # 3. Define Strict Paths
-          BUILD_DIR=".build/arm64-apple-macosx/release"
-          EXECUTABLE_PATH="$BUILD_DIR/ValetBar"
-          APP_NAME="ValetBar.app"
-          APP_BUNDLE="$APP_NAME"
-          CONTENTS_PATH="$APP_BUNDLE/Contents"
-          MACOS_PATH="$CONTENTS_PATH/MacOS"
-          RESOURCES_PATH="$CONTENTS_PATH/Resources"
-          BUNDLE_PATH="./$APP_NAME"
+          export EXECUTABLE_PATH=".build/arm64-apple-macosx/release/ValetBar"
+          export BUNDLE_PATH="./ValetBar.app"
+          export CONTENTS_PATH="$BUNDLE_PATH/Contents"
+          export RESOURCES_PATH="$CONTENTS_PATH/Resources"
+          export MACOS_PATH="$CONTENTS_PATH/MacOS"
           
           # 4. Create Bundle Structure
+          rm -rf "$BUNDLE_PATH"
           mkdir -p "$MACOS_PATH"
           mkdir -p "$RESOURCES_PATH"
           
           # 5. Copy Executable
-          if [ ! -f "$EXECUTABLE_PATH" ]; then
-              echo "CRITICAL ERROR: Executable not found at $EXECUTABLE_PATH"
-              exit 1
-          fi
-          
           cp "$EXECUTABLE_PATH" "$MACOS_PATH/"
           
-          # 2. Copy Resources (Manual Assembly)
-          echo "Copying resources..."
-          mkdir -p "$RESOURCES_PATH"
+          # 6. Copy Resources
           cp "Sources/Assets/MenuBarIcon.png" "$RESOURCES_PATH/"
           
-          # 7. Create Info.plist
+          # 7. Create Info.plist (With Sparkle Config)
           cat > "$CONTENTS_PATH/Info.plist" <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -68,81 +59,122 @@ jobs:
               <string>com.valetbar.app</string>
               <key>CFBundleName</key>
               <string>ValetBar</string>
-              <key>CFBundleIconFile</key>
-              <string>AppIcon</string>
-              <key>CFBundleShortVersionString</key>
-              <string>${{ github.ref_name }}</string>
-              <key>CFBundleVersion</key>
-              <string>${{ github.ref_name }}</string>
               <key>CFBundlePackageType</key>
               <string>APPL</string>
+              <key>CFBundleShortVersionString</key>
+              <string>${{ github.ref_name }}</string>
+              <key>LSMinimumSystemVersion</key>
+              <string>13.0</string>
               <key>LSUIElement</key>
               <true/>
+              <key>NSHighResolutionCapable</key>
+              <true/>
+              <key>SUFeedURL</key>
+              <string>https://raw.githubusercontent.com/ryzenixx/valetbar-macos/main/appcast.xml</string>
+              <key>SUPublicEDKey</key>
+              <string>${{ secrets.MACOS_SPARKLE_PUBLIC_KEY }}</string>
+              <key>SUEnableAutomaticChecks</key>
+              <true/>
+              <key>SUScheduledCheckInterval</key>
+              <integer>3600</integer>
           </dict>
           </plist>
           EOF
+
+      - name: Sign Application (Apple Developer)
+        env: 
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+          MACOS_CI_KEYCHAIN_PWD: ${{ secrets.MACOS_CI_KEYCHAIN_PWD }}
+        run: |
+          # Import Certificate & WWDR
+          echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
+          security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
           
-          # 8. Import Certificate & Sign
-          # Create temporary keychain
-          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-          security create-keychain -p "${{ secrets.MACOS_CI_KEYCHAIN_PWD }}" $KEYCHAIN_PATH
-          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-          security unlock-keychain -p "${{ secrets.MACOS_CI_KEYCHAIN_PWD }}" $KEYCHAIN_PATH
+          # Download Apple WWDR Certificates
+          curl -O https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
+          security import AppleWWDRCAG3.cer -k build.keychain -T /usr/bin/codesign
+
+          security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
           
-          # Import certificate to keychain
-          echo "${{ secrets.MACOS_CERTIFICATE }}" | base64 --decode > certificate.p12
-          security import certificate.p12 -P "${{ secrets.MACOS_CERTIFICATE_PWD }}" -A -t agg -k $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
+          # Find Identity
+          IDENTITY_HASH=$(security find-identity -v -p codesigning build.keychain | grep -oE '"[^"]+"' | head -1 | tr -d '"')
+          echo "Signing with Identity: $IDENTITY_HASH"
           
-          # Allow codesign to access the key
-          security set-key-partition-list -S apple-tool:,apple: -s -k "${{ secrets.MACOS_CI_KEYCHAIN_PWD }}" $KEYCHAIN_PATH
-          
-          # Sign the app
-          echo "Finding signing identity..."
-          security find-identity -v -p codesigning
-          
-          # Smart Identity Extraction
-          # 1. Download Apple WWDR Intermediates (G1, G3, G4) to ensure trust
-          # Modern certs need G3/G4, old ones need G1. We get them all to be safe.
-          echo "Downloading Apple WWDR Intermediates..."
-          curl -s -L -o AppleWWDRCA.cer https://developer.apple.com/certificationauthority/AppleWWDRCA.cer
-          curl -s -L -o AppleWWDRCAG3.cer https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
-          curl -s -L -o AppleWWDRCAG4.cer https://www.apple.com/certificateauthority/AppleWWDRCAG4.cer
-          
-          security import AppleWWDRCA.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign
-          security import AppleWWDRCAG3.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign
-          security import AppleWWDRCAG4.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign
-          
-          # 2. Extract Identity with strict Regex (SHA-1)
-          # We grep for 40 hex characters to ensure we get a HASH, not the word "valid".
-          IDENTITY_HASH=$(security find-identity -v -p codesigning | grep -o "[A-F0-9]\{40\}" | head -1)
-          
-          if [ -z "$IDENTITY_HASH" ]; then
-            echo "CRITICAL ERROR: No valid signing identity found even after installing WWDR intermediates!"
-            security find-identity -v -p codesigning # Print output for debug
-            exit 1
-          fi
-          
-          echo "Signing with identity hash: $IDENTITY_HASH"
-          codesign --force --deep --options runtime --sign "$IDENTITY_HASH" "$BUNDLE_PATH"
+          # Sign
+          /usr/bin/codesign --force --deep --options runtime --sign "$IDENTITY_HASH" ./ValetBar.app
 
       - name: Create DMG
         run: |
           brew install create-dmg
           create-dmg \
-            --volname "Valet Bar Installer" \
+            --volname "ValetBar Installer" \
             --window-pos 200 120 \
             --window-size 800 400 \
             --icon-size 100 \
             --icon "ValetBar.app" 200 190 \
             --hide-extension "ValetBar.app" \
             --app-drop-link 600 185 \
-            "ValetBar-${{ github.ref_name }}.dmg" \
+            "ValetBar.dmg" \
             "ValetBar.app"
 
-      - name: Upload Release
+      - name: Sign Update (Sparkle) & Generate Appcast
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.MACOS_SPARKLE_PRIVATE_KEY }}
+        run: |
+          # 1. Download Sparkle Tools
+          curl -L -o sparkle.tar.xz https://github.com/sparkle-project/Sparkle/releases/download/2.6.0/Sparkle-2.6.0.tar.xz
+          mkdir sparkle_tools
+          tar -xf sparkle.tar.xz -C sparkle_tools
+          
+          # 2. Sign DMG with Sparkle Key
+          # Write private key to file
+          echo "$SPARKLE_PRIVATE_KEY" > sparkle_key.pem
+          
+          # Sign
+          ./sparkle_tools/bin/sign_update "ValetBar.dmg" --ed-key-file sparkle_key.pem
+          
+          # 3. Generate Appcast
+          # We need to simulate the release structure for generate_appcast
+          mkdir release_assets
+          cp "ValetBar.dmg" release_assets/
+          
+          # URL Prefix where the DMG *will* be
+          DOWNLOAD_URL="https://github.com/ryzenixx/valetbar-macos/releases/download/${{ github.ref_name }}"
+          
+          ./sparkle_tools/bin/generate_appcast release_assets \
+             --download-url-prefix "$DOWNLOAD_URL" \
+             --ed-key-file sparkle_key.pem \
+             --output-path appcast.xml
+             
+          cat appcast.xml
+
+      - name: Commit Appcast to Repo
+        run: |
+          # Setup Git
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          # Add appcast.xml
+          mv release_assets/appcast.xml .
+          git add appcast.xml
+          
+          # Commit and Push
+          # Note: We are in a detached head state usually, need to fetch and checkout main
+          git fetch origin main
+          git checkout main
+          git pull origin main
+          git add appcast.xml
+          git commit -m "chore: Update appcast.xml for ${{ github.ref_name }}" || echo "No changes to appcast"
+          git push origin main
+
+      - name: Upload Release Assets
         uses: softprops/action-gh-release@v1
         with:
-          files: ValetBar-${{ github.ref_name }}.dmg
+          files: |
+            ValetBar.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

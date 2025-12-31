@@ -4,6 +4,7 @@ import AppKit
 @main
 struct ValetBarApp: App {
     @StateObject private var viewModel = ValetViewModel()
+    @StateObject private var updaterController = UpdaterController()
     
     private var menuBarIcon: NSImage {
         // Manually look for icon in Resources
@@ -22,7 +23,7 @@ struct ValetBarApp: App {
     
     var body: some Scene {
         MenuBarExtra {
-            MenuBarView(viewModel: viewModel)
+            MenuBarView(viewModel: viewModel, updaterController: updaterController)
                 .frame(minWidth: 380, maxWidth: 380, minHeight: 500, maxHeight: 500)
         } label: {
             Image(nsImage: menuBarIcon)

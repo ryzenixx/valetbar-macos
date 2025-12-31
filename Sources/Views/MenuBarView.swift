@@ -2,10 +2,10 @@ import SwiftUI
 
 struct MenuBarView: View {
     @ObservedObject var viewModel: ValetViewModel
+    @ObservedObject var updaterController: UpdaterController
     @Environment(\.colorScheme) var colorScheme
     
     @StateObject private var launchService = LaunchAtLoginService()
-    @StateObject private var updateService = UpdateService()
     
     enum Screen {
         case dashboard
@@ -49,7 +49,7 @@ struct MenuBarView: View {
                 dashboardContent
                     .transition(.move(edge: .leading))
             } else {
-                SettingsView(launchService: launchService, updateService: updateService) {
+                SettingsView(launchService: launchService, updaterController: updaterController) {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                         currentScreen = .dashboard
                     }
@@ -70,7 +70,7 @@ struct MenuBarView: View {
         .onAppear {
             Task {
                 await viewModel.loadData()
-                await updateService.checkForUpdates()
+                // Updater checks automatically via Sparkle
             }
         }
     }
@@ -121,11 +121,10 @@ struct MenuBarView: View {
                                 .font(.system(size: 14))
                                 .foregroundColor(.secondary)
                             
-                            if updateService.isUpdateAvailable {
-                                Circle()
-                                    .fill(Color.red)
-                                    .frame(width: 8, height: 8)
-                                    .offset(x: 2, y: -2)
+                            if updaterController.canCheckForUpdates { 
+                                // Logic to show red dot if update available is not directly exposed by canCheckForUpdates
+                                // Sparkle handles its own UI, so we can simplify for now or implement SPUUserDriverDelegate for custom UI
+                                // For V1, we rely on Sparkle's window popping up.
                             }
                         }
                     }

@@ -9,11 +9,17 @@ let package = Package(
     products: [
         .executable(name: "ValetBar", targets: ["ValetBar"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.0")
+    ],
     targets: [
         .executableTarget(
             name: "ValetBar",
-            dependencies: [],
-            path: "Sources"
+            dependencies: [
+                .product(name: "Sparkle", package: "Sparkle")
+            ],
+            path: "Sources",
+            exclude: ["Assets"] // Explicitly exclude Assets to prevent Bundle Accessor generation
         ),
     ]
 )

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var launchService: LaunchAtLoginService
-    @ObservedObject var updateService: UpdateService
+    @ObservedObject var updaterController: UpdaterController
     var onBack: () -> Void
     
     var body: some View {
@@ -35,48 +35,39 @@ struct SettingsView: View {
                 VStack(spacing: 20) {
                     
                     // Updates Section
-                    if updateService.isUpdateAvailable, let version = updateService.latestVersion {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("UPDATES")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.secondary)
-                                .padding(.horizontal, 4)
-                            
-                            Button(action: {
-                                Task { await updateService.downloadAndInstall() }
-                            }) {
-                                HStack {
-                                    Image(systemName: updateService.isDownloading ? "arrow.down.circle" : "arrow.down.circle.fill")
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 16))
-                                    
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(updateService.isDownloading ? "Downloading..." : "Update to version \(version)")
-                                            .font(.system(size: 13, weight: .medium))
-                                            .foregroundColor(.white)
-                                        Text(updateService.isDownloading ? "Please wait" : "Download and mount installer")
-                                            .font(.system(size: 11))
-                                            .foregroundColor(.white.opacity(0.8))
-                                    }
-                                    Spacer()
-                                    if !updateService.isDownloading {
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.white.opacity(0.5))
-                                    } else {
-                                        ProgressView()
-                                            .controlSize(.small)
-                                            .tint(.white)
-                                    }
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("UPDATES")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 4)
+                        
+                        Button(action: {
+                            updaterController.checkForUpdates()
+                        }) {
+                            HStack {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                    .foregroundColor(.primary)
+                                    .font(.system(size: 16))
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Check for Updates")
+                                        .font(.system(size: 13, weight: .medium))
+                                        .foregroundColor(.primary)
+                                    Text("Current Version: \(AppConfig.appVersion)")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.secondary)
                                 }
-                                .padding(12)
-                                .background(Color.blue)
-                                .cornerRadius(8)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary.opacity(0.5))
                             }
-                            .disabled(updateService.isDownloading)
-                            .buttonStyle(.plain)
+                            .padding(12)
+                            .background(Color.primary.opacity(0.03))
+                            .cornerRadius(8)
                         }
+                        .buttonStyle(.plain)
                     }
                     
                     // General Section

@@ -47,6 +47,24 @@ jobs:
           # 6. Copy Resources
           cp "Sources/Assets/MenuBarIcon.png" "$RESOURCES_PATH/"
           
+          # 7. Embed Frameworks (Sparkle)
+          export FRAMEWORKS_PATH="$CONTENTS_PATH/Frameworks"
+          mkdir -p "$FRAMEWORKS_PATH"
+          
+          # Find Sparkle.framework in build dir
+          # SPM typically puts it in .build/arm64-apple-macosx/release/Sparkle_Sparkle.bundle (implicit)
+          # OR strictly checked out as a product.
+          # Actually, for a binary dependency, it might be in .build/artifacts or just referenced.
+          # Let's try to copy everything ending in .framework from the build dir.
+          find .build -name "Sparkle.framework" -exec cp -R {} "$FRAMEWORKS_PATH/" \;
+          
+          # Verify Sparkle exists
+          if [ ! -d "$FRAMEWORKS_PATH/Sparkle.framework" ]; then
+              echo "CRITICAL ERROR: Sparkle.framework not found in build output!"
+              find .build -name "Sparkle.framework" # Debug
+              exit 1
+          fi
+          
           # 7. Create Info.plist (With Sparkle Config)
           cat > "$CONTENTS_PATH/Info.plist" <<EOF
           <?xml version="1.0" encoding="UTF-8"?>

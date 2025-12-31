@@ -13,10 +13,7 @@ let package = Package(
         .executableTarget(
             name: "ValetBar",
             dependencies: [],
-            path: "Sources",
-            resources: [
-                .process("Resources")
-            ]
+            path: "Sources"
         ),
     ]
 )

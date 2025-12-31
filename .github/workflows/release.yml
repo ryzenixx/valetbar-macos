@@ -129,7 +129,7 @@ jobs:
 
       - name: Create DMG
         run: |
-          npm install -g create-dmg
+          brew install create-dmg
           create-dmg \
             --volname "Valet Bar Installer" \
             --window-pos 200 120 \

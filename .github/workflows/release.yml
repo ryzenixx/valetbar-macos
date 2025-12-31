@@ -51,9 +51,10 @@ jobs:
           
           cp "$EXECUTABLE_PATH" "$MACOS_PATH/"
           
-          # 6. Copy Resources Manually
+          # 2. Copy Resources (Manual Assembly)
           echo "Copying resources..."
-          cp "Sources/Resources/MenuBarIcon.png" "$RESOURCES_PATH/"
+          mkdir -p "$RESOURCES_PATH"
+          cp "Sources/Assets/MenuBarIcon.png" "$RESOURCES_PATH/"
           
           # 7. Create Info.plist
           cat > "$CONTENTS_PATH/Info.plist" <<EOF

@@ -61,6 +61,8 @@ jobs:
               <string>ValetBar</string>
               <key>CFBundlePackageType</key>
               <string>APPL</string>
+              <key>CFBundleVersion</key>
+              <string>${{ github.ref_name }}</string>
               <key>CFBundleShortVersionString</key>
               <string>${{ github.ref_name }}</string>
               <key>LSMinimumSystemVersion</key>

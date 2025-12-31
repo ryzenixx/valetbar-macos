@@ -24,8 +24,9 @@
 Download the latest version from the [Releases Page](https://github.com/ryzenixx/valetbar-macos/releases/latest).
 
 1. Download **ValetBar.dmg**.
-2. Drag **ValetBar** to your `Applications` folder.
-3. Launch the app. 🤵
+2. Open **ValetBar.dmg**.
+3. Drag **ValetBar** to your `Applications` folder.
+4. Launch the app. 🤵
 
 ### Requirements
 - macOS 13.0 (Ventura) or later.

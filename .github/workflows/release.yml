@@ -23,35 +23,84 @@ jobs:
         run: |
           sed -i '' 's/appVersion = ".*"/appVersion = "${{ github.ref_name }}"/' Sources/App/AppConfig.swift
 
-      - name: Build and Archive
+      - name: Build and Sign Application
         run: |
-          xcodebuild -scheme ValetBar \
-            -configuration Release \
-            -destination 'platform=macOS,arch=arm64' \
-            -archivePath ValetBar.xcarchive \
-            CODE_SIGN_IDENTITY="-" \
-            CODE_SIGNING_REQUIRED="NO" \
-            CODE_SIGN_ENTITLEMENTS="" \
-            CODE_SIGNING_ALLOWED="NO" \
-            archive
-
-      - name: Extract App from Archive
-        run: |
-          # Extract .app directly from xcarchive (Bypassing exportArchive which requires certs)
-          mkdir -p Export
-          cp -R "ValetBar.xcarchive/Products/Applications/ValetBar.app" "Export/"
+          # 1. Clean Build
+          swift package clean
+          
+          # 2. Build for ARM64 Release
+          swift build -c release --arch arm64
+          
+          # 3. Define Strict Paths
+          BUILD_DIR=".build/arm64-apple-macosx/release"
+          EXECUTABLE_PATH="$BUILD_DIR/ValetBar"
+          APP_NAME="ValetBar.app"
+          APP_BUNDLE="$APP_NAME"
+          CONTENTS_PATH="$APP_BUNDLE/Contents"
+          MACOS_PATH="$CONTENTS_PATH/MacOS"
+          RESOURCES_PATH="$CONTENTS_PATH/Resources"
+          BUNDLE_PATH="./$APP_NAME"
+          
+          # 4. Create Bundle Structure
+          mkdir -p "$MACOS_PATH"
+          mkdir -p "$RESOURCES_PATH"
+          
+          # 5. Copy Executable
+          if [ ! -f "$EXECUTABLE_PATH" ]; then
+              echo "CRITICAL ERROR: Executable not found at $EXECUTABLE_PATH"
+              exit 1
+          fi
+          
+          cp "$EXECUTABLE_PATH" "$MACOS_PATH/"
+          
+          # 6. Copy Resources Manually
+          echo "Copying resources..."
+          cp "Sources/Resources/MenuBarIcon.png" "$RESOURCES_PATH/"
+          
+          # 7. Create Info.plist
+          cat > "$CONTENTS_PATH/Info.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>ValetBar</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.valetbar.app</string>
+              <key>CFBundleName</key>
+              <string>ValetBar</string>
+              <key>CFBundleIconFile</key>
+              <string>AppIcon</string>
+              <key>CFBundleShortVersionString</key>
+              <string>${{ github.ref_name }}</string>
+              <key>CFBundleVersion</key>
+              <string>${{ github.ref_name }}</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>LSUIElement</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+          
+          # 8. Import Certificate & Sign
+          # Create temporary keychain
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          security create-keychain -p "${{ secrets.MACOS_CI_KEYCHAIN_PWD }}" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "${{ secrets.MACOS_CI_KEYCHAIN_PWD }}" $KEYCHAIN_PATH
+          
+          # Import certificate to keychain
+          echo "${{ secrets.MACOS_CERTIFICATE }}" | base64 --decode > certificate.p12
+          security import certificate.p12 -P "${{ secrets.MACOS_CERTIFICATE_PWD }}" -A -t agg -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+          
+          # Sign the app
+          echo "Signing application with Developer ID..."
+          codesign --force --deep --options runtime --sign "Developer ID Application" "$BUNDLE_PATH"
 
       - name: Create DMG
         run: |
-          APP_PATH="Export/ValetBar.app"
-          
-          # Verify App Exists
-          if [ ! -d "$APP_PATH" ]; then
-            echo "Error: App not found at $APP_PATH"
-            exit 1
-          fi
-          
-          # Create DMG
           npm install -g create-dmg
           create-dmg \
             --volname "Valet Bar Installer" \
@@ -62,7 +111,7 @@ jobs:
             --hide-extension "ValetBar.app" \
             --app-drop-link 600 185 \
             "ValetBar-${{ github.ref_name }}.dmg" \
-            "$APP_PATH"
+            "ValetBar.app"
 
       - name: Upload Release
         uses: softprops/action-gh-release@v1

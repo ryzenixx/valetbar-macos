@@ -151,7 +151,6 @@ jobs:
              --download-url-prefix "$DOWNLOAD_URL" \
              --ed-key-file - \
              release_assets
-             release_assets
              
           cat release_assets/appcast.xml
 

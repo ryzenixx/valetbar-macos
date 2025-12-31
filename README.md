@@ -1,7 +1,7 @@
 
 <div align="center">
 
-  <img src=".github/assets/valettab.png" alt="ValetBar" width="300">
+  <img src=".github/assets/valetbar.png" alt="ValetBar" width="300">
 
   # ValetBar 🐦
 

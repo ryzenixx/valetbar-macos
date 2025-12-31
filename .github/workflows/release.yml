@@ -103,27 +103,25 @@ jobs:
           security find-identity -v -p codesigning
           
           # Smart Identity Extraction
-          # 1. Try to find the user's specific certificate first
-          IDENTITY_HASH=$(security find-identity -v -p codesigning | grep "Mael DURET" | head -1 | awk '{print $2}')
+          # 1. Download Apple WWDR Intermediates (G1, G3, G4) to ensure trust
+          # Modern certs need G3/G4, old ones need G1. We get them all to be safe.
+          echo "Downloading Apple WWDR Intermediates..."
+          curl -s -L -o AppleWWDRCA.cer https://developer.apple.com/certificationauthority/AppleWWDRCA.cer
+          curl -s -L -o AppleWWDRCAG3.cer https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
+          curl -s -L -o AppleWWDRCAG4.cer https://www.apple.com/certificateauthority/AppleWWDRCAG4.cer
           
-          # 2. Fallback: Take the first valid one if specific extraction failed
+          security import AppleWWDRCA.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign
+          security import AppleWWDRCAG3.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign
+          security import AppleWWDRCAG4.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign
+          
+          # 2. Extract Identity with strict Regex (SHA-1)
+          # We grep for 40 hex characters to ensure we get a HASH, not the word "valid".
+          IDENTITY_HASH=$(security find-identity -v -p codesigning | grep -o "[A-F0-9]\{40\}" | head -1)
+          
           if [ -z "$IDENTITY_HASH" ]; then
-              IDENTITY_HASH=$(security find-identity -v -p codesigning | head -1 | awk '{print $2}')
-          fi
-          
-          if [ -z "$IDENTITY_HASH" ] || [ "$IDENTITY_HASH" == "valid" ]; then
-            echo "CRITICAL ERROR: No valid signing identity found! Check if WWDR Intermediate certificate is installed on runner."
-            # Attempt to download Apple WWDR just in case (Common fix for '0 valid identities' on CI)
-            echo "Downloading Apple WWDR..."
-            curl -o AppleWWDRCA.cer https://developer.apple.com/certificationauthority/AppleWWDRCA.cer
-            security import AppleWWDRCA.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign
-            
-            # Retry finding identity
-            IDENTITY_HASH=$(security find-identity -v -p codesigning | head -1 | awk '{print $2}')
-            if [ -z "$IDENTITY_HASH" ]; then
-                 echo "Still no identity found. Aborting."
-                 exit 1
-            fi
+            echo "CRITICAL ERROR: No valid signing identity found even after installing WWDR intermediates!"
+            security find-identity -v -p codesigning # Print output for debug
+            exit 1
           fi
           
           echo "Signing with identity hash: $IDENTITY_HASH"

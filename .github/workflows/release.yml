@@ -147,8 +147,7 @@ jobs:
           
           ./sparkle_tools/bin/generate_appcast release_assets \
              --download-url-prefix "$DOWNLOAD_URL" \
-             --ed-key-file sparkle_key.pem \
-             --output-path appcast.xml
+             --ed-key-file sparkle_key.pem
              
           cat appcast.xml
 

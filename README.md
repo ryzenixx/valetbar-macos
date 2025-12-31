@@ -1,61 +1,81 @@
-# ValetBar 🐦
 
-[![macOS](https://img.shields.io/badge/platform-macOS-lightgrey.svg?style=flat-square&logo=apple)](https://www.apple.com/macos)
-[![Swift](https://img.shields.io/badge/language-Swift_6.2-orange.svg?style=flat-square&logo=swift)](https://developer.apple.com/swift/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
-[![GitHub Release](https://img.shields.io/github/v/release/ryzenixx/valetbar-macos?style=flat-square&color=green)](https://github.com/ryzenixx/valetbar-macos/releases)
+<div align="center">
 
-**ValetBar** is the ultimate companion for [Laravel Valet](https://laravel.com/docs/valet) users. It lives in your macOS menu bar, providing instant access to your local development environment status, site proxies, and service controls—all wrapped in a stunning, native SwiftUI interface.
+  ![ValetBar](.github/assets/valettab.png)
+
+  # ValetBar 🤵
+
+  **The missing native companion for Laravel Valet on macOS.**
+
+  [![macOS](https://img.shields.io/badge/platform-macOS_13+-000000.svg?style=for-the-badge&logo=apple&logoColor=white)](https://www.apple.com/macos)
+  [![Swift](https://img.shields.io/badge/Swift-6.2.3-F05138.svg?style=for-the-badge&logo=swift&logoColor=white)](https://developer.apple.com/swift/)
+  [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+  [![Release](https://img.shields.io/github/v/release/ryzenixx/valetbar-macos?style=for-the-badge&color=2ea44f)](https://github.com/ryzenixx/valetbar-macos/releases)
+
+  <br>
+
+  **ValetBar** lives in your menu bar, giving you instant control over your local request cycle.
+  Stop wrestling with the terminal for status checks. Monitor your sites, toggle services, and debug in style.
+
+  [Download Latest Release](https://github.com/ryzenixx/valetbar-macos/releases/latest) • [Report Bug](https://github.com/ryzenixx/valetbar-macos/issues) • [Request Feature](https://github.com/ryzenixx/valetbar-macos/issues)
+
+</div>
 
 ---
 
 ## ✨ Features
 
-- **Menu Bar Control Center**: Check the global status of Valet at a glance.
-- **One-Click Actions**: Start, Stop, and Restart your Valet services instantly.
-- **Smart Proxy List**: View all your parked sites (`.test` domains) with their SSL status.
-- **Instant Navigation**: Click any proxy to open it directly in your browser.
-- **Modern UI**: Built with SwiftUI, featuring native translucency and animations.
-- **Auto-Updates**: Integrated **Sparkle 2** engine ensures you're always on the latest version.
+<table>
+  <tr>
+    <td width="50%">
+      <h3>🚦 Instant Control</h3>
+      <p>Start, Stop, and Restart your Valet services (Nginx, PHP, DnsMasq) with a single click. No more sudo typing.</p>
+    </td>
+    <td width="50%">
+      <h3>🔒 SSL & Domain Status</h3>
+      <p>See all your parked <code>.test</code> domains at a glance. Instantly identify which sites are secured (SSL) and which are not.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3>💎 Native Design</h3>
+      <p>Built with SwiftUI and <strong>Native Visual Effects</strong>. It feels right at home on macOS Sequoia/Sonoma, respecting system vibrancy and blur.</p>
+    </td>
+    <td width="50%">
+      <h3>⚡️ Quick Actions</h3>
+      <p>Click any site to open it in your browser immediately. Productivity boost for multi-site management.</p>
+    </td>
+  </tr>
+</table>
+
+## 🛠 Tech Stack
+
+Built with modern Apple technologies for maximum performance and native feel.
+
+- **Swift 6.2.3** & **SwiftUI**
+- **Sparkle 2**: Robust, sandboxed auto-update mechanism.
+- **AppKit Interop**: Uses `NSVisualEffectView` for premium glass materials.
+- **Hardened Runtime**: Fully signed and notarized for security.
 
 ## 🚀 Installation
 
 ### Recommended
-Download the latest version from the [Releases Page](https://github.com/ryzenixx/valetbar-macos/releases/latest).
+1. Go to the [Releases Page](https://github.com/ryzenixx/valetbar-macos/releases/latest).
+2. Download `ValetBar.dmg`.
+3. Drag the app to your **Applications** folder.
+4. Launch it! 🚀
 
-1. Download **ValetBar.dmg**.
-2. Open **ValetBar.dmg**.
-3. Drag **ValetBar** to your `Applications` folder.
-4. Launch the app. 🤵
+## 🤝 Contributing
 
-### Requirements
-- macOS 13.0 (Ventura) or later.
-- Laravel Valet installed and configured (`valet install`).
-
----
-
----
-
-## 🏗 Architecture
-
-- **Language**: Swift
-- **UI Framework**: SwiftUI (MenuBarExtra)
-- **Architecture**: MVVM (Model-View-ViewModel)
-- **Concurrency**: Swift Async/Await (CLI operations)
-
-### Key Components
-- **`ValetCLI`**: A specialized wrapper to execute `valet` commands securely.
-- **`UpdaterController`**: Bridges Sparkle's update mechanism with SwiftUI.
-- **`MenuBarView`**: The main interface, designed with a focus on usability and aesthetics.
-
----
+We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to build the project from source and submit pull requests.
 
 ## 📄 License
 
-ValetBar is open-source software licensed under the [MIT license](LICENSE).
+Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-<p align="center">
-  Built with ❤️ by Mael Duret
-</p>
+<div align="center">
+  <p>Built with ❤️ by Mael Duret</p>
+  <p><i>Not affiliated with Laravel or the Laravel Valet team.</i></p>
+</div>

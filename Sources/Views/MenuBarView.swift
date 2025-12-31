@@ -121,10 +121,10 @@ struct MenuBarView: View {
                                 .font(.system(size: 14))
                                 .foregroundColor(.secondary)
                             
-                            if updaterController.canCheckForUpdates { 
-                                // Logic to show red dot if update available is not directly exposed by canCheckForUpdates
-                                // Sparkle handles its own UI, so we can simplify for now or implement SPUUserDriverDelegate for custom UI
-                                // For V1, we rely on Sparkle's window popping up.
+                            if updaterController.canCheckForUpdates {
+                                // TODO : Logic to show red dot if update available is not directly exposed by canCheckForUpdates
+                                // TODO : Sparkle handles its own UI, so we can simplify for now or implement SPUUserDriverDelegate for custom UI
+                                // TODO : For V1, we rely on Sparkle's window popping up.
                             }
                         }
                     }

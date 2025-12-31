@@ -1,7 +1,7 @@
-# ValetBar 🤵🍸
+# ValetBar 🐦
 
 [![macOS](https://img.shields.io/badge/platform-macOS-lightgrey.svg?style=flat-square&logo=apple)](https://www.apple.com/macos)
-[![Swift](https://img.shields.io/badge/language-Swift_5.7-orange.svg?style=flat-square&logo=swift)](https://developer.apple.com/swift/)
+[![Swift](https://img.shields.io/badge/language-Swift_6.2-orange.svg?style=flat-square&logo=swift)](https://developer.apple.com/swift/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
 [![GitHub Release](https://img.shields.io/github/v/release/ryzenixx/valetbar-macos?style=flat-square&color=green)](https://github.com/ryzenixx/valetbar-macos/releases)
 

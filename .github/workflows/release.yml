@@ -40,6 +40,9 @@ jobs:
           
           cp "Sources/Assets/MenuBarIcon.png" "$RESOURCES_PATH/"
           
+          # Copy generated Resource Bundle (Critical for Bundle.module to avoid crash)
+          cp -R ".build/arm64-apple-macosx/release/ValetBar_ValetBar.bundle" "$RESOURCES_PATH/"
+          
           export FRAMEWORKS_PATH="$CONTENTS_PATH/Frameworks"
           mkdir -p "$FRAMEWORKS_PATH"
           

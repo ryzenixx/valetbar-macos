@@ -208,11 +208,11 @@ struct MenuBarView: View {
                     .font(.caption2)
                     .foregroundColor(.secondary)
                 
-                Text("Version \(AppConfig.appVersion)")
+                Text("version \(AppConfig.appVersion)")
                     .font(.caption2)
                     .foregroundColor(.secondary.opacity(0.6))
                 
-                Button("More information") {
+                Button("View on GitHub") {
                     if let url = URL(string: "https://github.com/ryzenixx/valetbar-macos") {
                         NSWorkspace.shared.open(url)
                     }

@@ -25,15 +25,15 @@
 
 ## ✨ Features
 
-- **Instant Control** — Start, Stop, and Restart Valet services (Nginx, PHP, DnsMasq) in one click.
-- **Site Management** — View all your parked `.test` domains with live SSL status indicators.
-- **Native Experience** — Built with SwiftUI and `NSVisualEffectView` for that premium macOS feel.
+- **Instant Control** — Start, Stop, and Restart Valet in one click.
+- **Site Management** — View parked domains with live SSL status.
+- **Native Experience** — Designed for macOS with a premium, translucent aesthetic.
 - **Quick Actions** — Instant browser navigation for any local site.
 
 ## 🛠 Under the Hood
 
-ValetBar is built with **Swift 6.2.3** and **SwiftUI**, adhering to the highest standards of macOS development.
-It includes **Sparkle 2** for secure, sandboxed auto-updates and is fully signed with the **Hardened Runtime**.
+ValetBar is built with **Swift** and **SwiftUI** for maximum performance.
+It features secure, sandboxed auto-updates and follows modern macOS security standards.
 
 ## 🚀 Installation
 

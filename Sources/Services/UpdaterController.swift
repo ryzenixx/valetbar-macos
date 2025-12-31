@@ -22,7 +22,7 @@ class UpdaterController: NSObject, ObservableObject, SPUUpdaterDelegate {
     
     // MARK: - SPUUpdaterDelegate
     
-    func updater(_ updater: SPUUpdater, didFinishLoading appcast: SPUAppcast) {
+    func updater(_ updater: SPUUpdater, didFinishLoading appcast: SUAppcast) {
         // Did find valid update feed
         print("[Sparkle] Appcast loaded: \(appcast.items.count) items")
     }

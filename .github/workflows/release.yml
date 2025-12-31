@@ -151,8 +151,9 @@ jobs:
              --download-url-prefix "$DOWNLOAD_URL" \
              --ed-key-file - \
              release_assets
+             release_assets
              
-          cat appcast.xml
+          cat release_assets/appcast.xml
 
       - name: Commit Appcast to Repo
         run: |

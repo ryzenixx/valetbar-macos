@@ -96,8 +96,20 @@ jobs:
           security list-keychain -d user -s $KEYCHAIN_PATH
           
           # Sign the app
-          echo "Signing application with Developer ID..."
-          codesign --force --deep --options runtime --sign "Developer ID Application" "$BUNDLE_PATH"
+          # Sign the app
+          echo "Finding signing identity..."
+          security find-identity -v -p codesigning
+          
+          # Extract the First Valid Identity Hash
+          IDENTITY_HASH=$(security find-identity -v -p codesigning | head -1 | awk '{print $2}')
+          
+          if [ -z "$IDENTITY_HASH" ]; then
+            echo "CRITICAL ERROR: No valid signing identity found in keychain!"
+            exit 1
+          fi
+          
+          echo "Signing with identity hash: $IDENTITY_HASH"
+          codesign --force --deep --options runtime --sign "$IDENTITY_HASH" "$BUNDLE_PATH"
 
       - name: Create DMG
         run: |

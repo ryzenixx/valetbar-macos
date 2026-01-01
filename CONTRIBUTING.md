@@ -13,7 +13,7 @@ Following these guidelines helps to communicate that you respect the time of the
 The project is built with Swift Package Manager (SPM).
 
 ### Prerequisites
-- macOS 15.0 (Sequoia) or later.
+- macOS 26.0 (Tahoe) or later.
 - Xcode 15 or later.
 - Swift 6.2.3.
 - [Laravel Valet](https://laravel.com/docs/valet) installed.

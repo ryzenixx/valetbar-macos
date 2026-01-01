@@ -7,7 +7,7 @@
 
   **The missing native companion for Laravel Valet on macOS.**
 
-  [![macOS](https://img.shields.io/badge/platform-macOS_15+-000000.svg?style=for-the-badge&logo=apple&logoColor=white)](https://www.apple.com/macos)
+  [![macOS](https://img.shields.io/badge/platform-macOS_26+-000000.svg?style=for-the-badge&logo=apple&logoColor=white)](https://www.apple.com/macos)
   [![Swift](https://img.shields.io/badge/Swift-6.2.3-F05138.svg?style=for-the-badge&logo=swift&logoColor=white)](https://developer.apple.com/swift/)
   [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
   [![Release](https://img.shields.io/github/v/release/ryzenixx/valetbar-macos?style=for-the-badge&color=2ea44f)](https://github.com/ryzenixx/valetbar-macos/releases)
@@ -34,7 +34,7 @@
 
 **ValetBar** is built with **Swift** and **SwiftUI** for maximum performance.
 It features secure, sandboxed auto-updates and follows modern macOS security standards.
-Requires **macOS 15 (Sequoia)** or later.
+Requires **macOS 26 (Tahoe)** or later.
 
 ## 🚀 Installation
 

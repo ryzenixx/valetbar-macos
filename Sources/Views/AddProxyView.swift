@@ -41,7 +41,7 @@ struct AddProxyView: View {
                         .font(.system(size: 13))
                 }
                 .padding(6)
-                .background(Color(NSColor.controlBackgroundColor))
+                .background(Color(NSColor.textBackgroundColor))
                 .cornerRadius(6)
                 .overlay(
                     RoundedRectangle(cornerRadius: 6)

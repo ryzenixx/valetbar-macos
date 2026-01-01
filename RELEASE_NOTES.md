@@ -1,14 +1,7 @@
-# Release 1.2.0 🐦
+# Release 1.2.1 🐦
 
 ### Added
--   **New Proxy Creation**: Easily add new proxies directly from the menu bar via the new "+" button.
--   **Secure by Default**: Option to secure proxies (HTTPS) during creation.
--   **Proxy Deletion**: Right-click on any proxy in the list to remove it instantly.
--   **Enhanced UI**: New translucent "Glass" design for the creation window, matching the native macOS aesthetic.
-
-### Improved
--   **Smart Input**: The target field automatically handles missing `http://` prefixes.
--   **Safety**: Interactions are disabled while Valet is processing commands to prevent conflicts.
+-   **Safety**: Added a confirmation dialog before deleting a proxy to prevent accidental removals.
 
 ### Fixed
--   Minor UI alignment issues in the proxy list.
+-   **UI**: Corrected input field background colors in production builds.

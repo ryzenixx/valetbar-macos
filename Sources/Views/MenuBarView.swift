@@ -14,6 +14,8 @@ struct MenuBarView: View {
     
     @State private var currentScreen: Screen = .dashboard
     @State private var showAddProxy = false
+    @State private var showDeleteConfirmation = false
+    @State private var proxyToDelete: ValetProxy?
     
     private var statusColor: Color {
         switch viewModel.appState {
@@ -95,11 +97,11 @@ struct MenuBarView: View {
             VStack(spacing: 12) {
                 HStack {
                     Image(nsImage: headerIcon)
-                        .resizable()
-                        .renderingMode(.template)
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 22, height: 22)
-                        .foregroundColor(.primary)
+                    .resizable()
+                    .renderingMode(.template)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 22, height: 22)
+                    .foregroundColor(.primary)
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Laravel Valet")
@@ -189,7 +191,7 @@ struct MenuBarView: View {
             HStack(spacing: 8) {
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
+                    .foregroundColor(.secondary)
                     TextField("Search sites...", text: $viewModel.searchText)
                         .textFieldStyle(.plain)
                         .font(.system(size: 13))
@@ -228,9 +230,8 @@ struct MenuBarView: View {
                             ProxyRow(proxy: proxy)
                                 .contextMenu {
                                     Button(role: .destructive) {
-                                        Task {
-                                            await viewModel.removeProxy(proxy: proxy)
-                                        }
+                                        proxyToDelete = proxy
+                                        showDeleteConfirmation = true
                                     } label: {
                                         Label("Delete Proxy", systemImage: "trash")
                                     }
@@ -240,6 +241,16 @@ struct MenuBarView: View {
                         }
                     }
                 }
+            }
+            .alert("Delete Proxy", isPresented: $showDeleteConfirmation, presenting: proxyToDelete) { proxy in
+                Button("Delete", role: .destructive) {
+                    Task {
+                        await viewModel.removeProxy(proxy: proxy)
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: { proxy in
+                Text("Are you sure you want to delete the proxy for \"\(proxy.url)\"? This action cannot be undone.")
             }
             
         }

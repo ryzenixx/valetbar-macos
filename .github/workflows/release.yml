@@ -169,8 +169,17 @@ jobs:
              --ed-key-file - \
              release_assets
              
-          # Inject RELEASE_NOTES.md content into the appcast as <description>
-          perl -0777 -i -pe 'BEGIN { local $/; open(F, "<RELEASE_NOTES.md"); $notes = <F>; close(F); } s|</item>|<description><![CDATA[$notes]]></description></item>|' release_assets/appcast.xml
+          # Install pandoc for Markdown conversion
+          if ! command -v pandoc &> /dev/null; then
+              brew install pandoc
+          fi
+          
+          # Convert RELEASE_NOTES.md to HTML
+          pandoc RELEASE_NOTES.md -f markdown -t html -o release_notes.html
+          
+          # Inject HTML content into the appcast as <description>
+          perl -0777 -i -pe 'BEGIN { local $/; open(F, "<release_notes.html"); $notes = <F>; close(F); } s|</item>|<description><![CDATA[$notes]]></description></item>|' release_assets/appcast.xml
+          
           
           
              

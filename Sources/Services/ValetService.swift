@@ -7,7 +7,7 @@ enum AppState {
     case loading(String)
 }
 
-class ValetService: ObservableObject {
+actor ValetService {
     private let cli = ValetCLI()
     
     func refreshData() async throws -> (state: AppState, proxies: [ValetProxy]) {

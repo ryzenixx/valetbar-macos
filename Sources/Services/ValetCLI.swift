@@ -6,7 +6,7 @@ enum ValetError: Error {
     case parsingError
 }
 
-class ValetCLI {
+actor ValetCLI {
     
     private let commonPaths = [
         "/usr/local/bin/valet",

@@ -24,5 +24,7 @@
     <string>https://raw.githubusercontent.com/ryzenixx/valetbar-macos/main/appcast.xml</string>
     <key>SUEnableAutomaticChecks</key>
     <true/>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
 </dict>
 </plist>

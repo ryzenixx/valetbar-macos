@@ -26,6 +26,7 @@
 ## ✨ Features
 
 - **Instant Control** — Start, Stop, and Restart Valet in one click.
+- **Proxy Management** — Add and Delete proxies directly from the menu bar.
 - **Site Management** — View parked domains with live SSL status.
 - **Native Experience** — Designed for macOS with a premium, translucent aesthetic.
 - **Quick Actions** — Instant browser navigation for any local site.

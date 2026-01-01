@@ -169,6 +169,10 @@ jobs:
              --ed-key-file - \
              release_assets
              
+          # Inject the link to GitHub Release Notes into the appcast
+          sed -i '' "s|</item>|<sparkle:releaseNotesLink>https://github.com/ryzenixx/valetbar-macos/releases/tag/${{ github.ref_name }}</sparkle:releaseNotesLink></item>|" release_assets/appcast.xml
+          
+             
           cat release_assets/appcast.xml
 
       - name: Commit Appcast to Repo
@@ -189,6 +193,7 @@ jobs:
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v1
         with:
+          generate_release_notes: true
           files: |
             ValetBar.dmg
         env:

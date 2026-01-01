@@ -120,16 +120,20 @@ struct MenuBarView: View {
                     Spacer()
                     
                     Menu {
-                        Button("Settings") {
+                        Button {
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                                 currentScreen = .settings
                             }
+                        } label: {
+                            Label("Settings", systemImage: "gear")
                         }
                         
                         Divider()
                         
-                        Button("Quit Valet Bar") {
+                        Button {
                             NSApplication.shared.terminate(nil)
+                        } label: {
+                            Label("Quit Valet Bar", systemImage: "power")
                         }
                     } label: {
                         ZStack(alignment: .topTrailing) {

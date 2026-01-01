@@ -30,9 +30,11 @@ struct AddProxyView: View {
                             .stroke(Color.white.opacity(0.1), lineWidth: 1)
                     )
                 
-                Text("Will be available at http://\(domain.isEmpty ? "..." : domain).test")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+                if !domain.isEmpty {
+                    (Text("Will be available at ") + Text("\(isSecure ? "https" : "http")://\(domain).test").bold())
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
             }
             
             VStack(alignment: .leading, spacing: 4) {

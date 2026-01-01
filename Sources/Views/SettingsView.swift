@@ -95,7 +95,7 @@ struct SettingsView: View {
                                         #endif
                                     
                                     #if DEBUG
-                                    Text("Updater disabled in dev build")
+                                    Text("Updater disabled in development build")
                                         .font(.system(size: 11))
                                         .foregroundColor(.secondary)
                                     #else

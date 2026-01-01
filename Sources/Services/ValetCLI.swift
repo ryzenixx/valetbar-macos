@@ -109,6 +109,22 @@ actor ValetCLI {
         _ = try await executeValetCommand(["stop"])
     }
     
+    func proxy(domain: String, target: String, secure: Bool) async throws {
+        var args = ["proxy", domain, target]
+        if secure {
+            args.append("--secure")
+        }
+        _ = try await executeValetCommand(args)
+    }
+    
+    func secure(domain: String) async throws {
+        _ = try await executeValetCommand(["secure", domain])
+    }
+    
+    func unproxy(domain: String) async throws {
+        _ = try await executeValetCommand(["unproxy", domain])
+    }
+    
     func getProxies() async throws -> [ValetProxy] {
         let output = try await executeValetCommand(["proxies"])
         return parseProxiesOutput(output)

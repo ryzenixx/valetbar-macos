@@ -41,4 +41,12 @@ actor ValetService {
     func stop() async throws {
         try await cli.stopValet()
     }
+    
+    func addProxy(domain: String, target: String, secure: Bool) async throws {
+        try await cli.proxy(domain: domain, target: target, secure: secure)
+    }
+    
+    func removeProxy(domain: String) async throws {
+        try await cli.unproxy(domain: domain)
+    }
 }

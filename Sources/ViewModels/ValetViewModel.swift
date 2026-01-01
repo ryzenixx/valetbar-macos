@@ -93,6 +93,54 @@ class ValetViewModel: ObservableObject {
         isActionInProgress = false
     }
     
+    func addProxy(domain: String, target: String, secure: Bool) async -> Bool {
+        guard !isActionInProgress else { return false }
+        isActionInProgress = true
+        appState = .loading("ADDING...")
+        
+        do {
+            try await service.addProxy(domain: domain, target: target, secure: secure)
+            
+            // Refresh list
+            await loadProxiesOnly()
+            
+            // Re-check status
+            let (state, _) = try await service.refreshData()
+            self.appState = state
+            
+            isActionInProgress = false
+            return true
+        } catch {
+            self.errorMessage = "Failed to add proxy: \(error.localizedDescription)"
+            self.appState = .error(error.localizedDescription)
+            isActionInProgress = false
+            return false
+        }
+    }
+    
+    func removeProxy(proxy: ValetProxy) async {
+        guard !isActionInProgress else { return }
+        isActionInProgress = true
+        appState = .loading("REMOVING...")
+        
+        let domain = proxy.url.replacingOccurrences(of: ".test", with: "")
+        
+        do {
+            try await service.removeProxy(domain: domain)
+            
+            await loadProxiesOnly()
+            
+            let (state, _) = try await service.refreshData()
+            self.appState = state
+            
+        } catch {
+            self.errorMessage = "Failed to remove proxy: \(error.localizedDescription)"
+            self.appState = .error(error.localizedDescription)
+        }
+        
+        isActionInProgress = false
+    }
+    
     private func loadProxiesOnly() async {
         do {
             let (_, proxies) = try await service.refreshData()

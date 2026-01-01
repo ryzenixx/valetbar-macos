@@ -13,6 +13,7 @@ struct MenuBarView: View {
     }
     
     @State private var currentScreen: Screen = .dashboard
+    @State private var showAddProxy = false
     
     private var statusColor: Color {
         switch viewModel.appState {
@@ -184,19 +185,37 @@ struct MenuBarView: View {
             
             Divider()
             
-            // Search Bar
+            // Search Bar & Add Button
             HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
-                TextField("Search sites...", text: $viewModel.searchText)
-                    .textFieldStyle(.plain)
-                    .font(.system(size: 13))
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.secondary)
+                    TextField("Search sites...", text: $viewModel.searchText)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 13))
+                }
+                .padding(10)
+                .background(Color.primary.opacity(0.05))
+                .cornerRadius(8)
+                
+                Button(action: {
+                    showAddProxy = true
+                }) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 14, weight: .bold))
+                        .frame(width: 32, height: 32)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                }
+                .buttonStyle(.plain)
+                .help("Add New Proxy")
             }
-            .padding(10)
-            .background(Color.primary.opacity(0.05))
-            .cornerRadius(8)
             .padding(.horizontal)
             .padding(.vertical, 8)
+            .sheet(isPresented: $showAddProxy) {
+                AddProxyView(viewModel: viewModel)
+            }
             
             ScrollView {
                 LazyVStack(spacing: 0) {
@@ -207,6 +226,15 @@ struct MenuBarView: View {
                     } else {
                         ForEach(viewModel.filteredProxies) { proxy in
                             ProxyRow(proxy: proxy)
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        Task {
+                                            await viewModel.removeProxy(proxy: proxy)
+                                        }
+                                    } label: {
+                                        Label("Delete Proxy", systemImage: "trash")
+                                    }
+                                }
                             Divider()
                                 .padding(.leading, 40)
                         }

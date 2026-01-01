@@ -50,11 +50,12 @@ struct SettingsView: View {
                                 Text("Launch at Login")
                                     .font(.system(size: 13))
                                 Spacer()
-                                NativeSwitch(isOn: Binding(
+                            Toggle("", isOn: Binding(
                                     get: { launchService.isEnabled },
                                     set: { _ in launchService.toggle() }
                                 ))
-                                .frame(width: 38, height: 21)
+                                .labelsHidden()
+                                .toggleStyle(.switch)
                             }
                             .padding(12)
                             .background(Color.primary.opacity(0.03))

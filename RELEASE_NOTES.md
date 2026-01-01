@@ -1,7 +1,4 @@
-# Release 1.2.1 🐦
-
-### Added
--   **Safety**: Added a confirmation dialog before deleting a proxy to prevent accidental removals.
+# Release 1.2.2 🐦
 
 ### Fixed
--   **UI**: Corrected input field background colors in production builds.
+-   **UI**: Enforced darker background for input fields in the "Add Proxy" window for better contrast in Dark Mode.

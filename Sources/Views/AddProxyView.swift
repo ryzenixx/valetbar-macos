@@ -18,8 +18,18 @@ struct AddProxyView: View {
                 Text("Domain")
                     .font(.caption)
                     .foregroundColor(.secondary)
+                
                 TextField("my.frontend", text: $domain)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 13))
+                    .padding(8)
+                    .background(Color.black.opacity(0.3))
+                    .cornerRadius(6)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                    )
+                
                 Text("Will be available at http://\(domain.isEmpty ? "..." : domain).test")
                     .font(.caption2)
                     .foregroundColor(.secondary)
@@ -34,18 +44,18 @@ struct AddProxyView: View {
                     Text("http://")
                         .foregroundColor(.secondary)
                         .font(.system(size: 13))
-                        .padding(.leading, 4)
+                        .padding(.leading, 8)
                     
                     TextField("127.0.0.1:3000", text: $target)
                         .textFieldStyle(.plain)
                         .font(.system(size: 13))
                 }
-                .padding(6)
-                .background(Color(NSColor.textBackgroundColor))
+                .padding(.vertical, 8)
+                .background(Color.black.opacity(0.3))
                 .cornerRadius(6)
                 .overlay(
                     RoundedRectangle(cornerRadius: 6)
-                        .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
                 )
             }
             
@@ -81,6 +91,7 @@ struct AddProxyView: View {
     private func createProxy() {
         isSaving = true
         
+        // Auto-prepend http:// if missing
         let finalTarget = target.hasPrefix("http") ? target : "http://\(target)"
         
         Task {

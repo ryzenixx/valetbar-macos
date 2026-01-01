@@ -19,6 +19,7 @@ class UpdaterController: NSObject, ObservableObject, SPUUpdaterDelegate {
         }
     }
     
+    @MainActor
     func checkForUpdates() {
         updaterController?.checkForUpdates(nil)
     }

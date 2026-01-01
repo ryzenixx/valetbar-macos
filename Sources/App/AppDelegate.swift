@@ -28,6 +28,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
+    @MainActor
     @objc func buttonPressed(_ sender: NSStatusBarButton) {
         let event = NSApp.currentEvent!
         
@@ -49,6 +50,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
+    @MainActor
     @objc func quitApp() {
         NSApp.terminate(nil)
     }

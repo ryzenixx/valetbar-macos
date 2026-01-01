@@ -3,34 +3,22 @@
     <channel>
         <title>ValetBar</title>
         <item>
-            <title>v1.2.0</title>
-            <pubDate>Thu, 01 Jan 2026 22:32:31 +0000</pubDate>
-            <sparkle:version>v1.2.0</sparkle:version>
-            <sparkle:shortVersionString>v1.2.0</sparkle:shortVersionString>
+            <title>v1.2.1</title>
+            <pubDate>Thu, 01 Jan 2026 23:10:10 +0000</pubDate>
+            <sparkle:version>v1.2.1</sparkle:version>
+            <sparkle:shortVersionString>v1.2.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/ryzenixx/valetbar-macos/releases/download/v1.2.0/ValetBar.dmg" length="1184740" type="application/octet-stream" sparkle:edSignature="/DfBDk4sgCy23tVCqI7pVIFZmlmDRUhah2dqKDZ6vO4tpdAF6hmPHd3JHRxLMAzb+NMHGQppyNeY4wK2cggSBA=="/>
-        <description><![CDATA[<h1 id="release-1.2.0">Release 1.2.0 🐦</h1>
+            <enclosure url="https://github.com/ryzenixx/valetbar-macos/releases/download/v1.2.1/ValetBar.dmg" length="1192103" type="application/octet-stream" sparkle:edSignature="GCfYFoTdM8wwoJlSmlJ5yPQrnjYif7xOLrgd7WXd+GGxH5QCF82PyjgXAhD5M5NArFwzQokRftT6fnOE8DPoAw=="/>
+        <description><![CDATA[<h1 id="release-1.2.1">Release 1.2.1 🐦</h1>
 <h3 id="added">Added</h3>
 <ul>
-<li><strong>New Proxy Creation</strong>: Easily add new proxies directly
-from the menu bar via the new “+” button.</li>
-<li><strong>Secure by Default</strong>: Option to secure proxies (HTTPS)
-during creation.</li>
-<li><strong>Proxy Deletion</strong>: Right-click on any proxy in the
-list to remove it instantly.</li>
-<li><strong>Enhanced UI</strong>: New translucent “Glass” design for the
-creation window, matching the native macOS aesthetic.</li>
-</ul>
-<h3 id="improved">Improved</h3>
-<ul>
-<li><strong>Smart Input</strong>: The target field automatically handles
-missing <code>http://</code> prefixes.</li>
-<li><strong>Safety</strong>: Interactions are disabled while Valet is
-processing commands to prevent conflicts.</li>
+<li><strong>Safety</strong>: Added a confirmation dialog before deleting
+a proxy to prevent accidental removals.</li>
 </ul>
 <h3 id="fixed">Fixed</h3>
 <ul>
-<li>Minor UI alignment issues in the proxy list.</li>
+<li><strong>UI</strong>: Corrected input field background colors in
+production builds.</li>
 </ul>
 ]]></description></item>
     </channel>

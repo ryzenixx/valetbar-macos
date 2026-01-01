@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "ValetBar",
     platforms: [
-        .macOS("26.0")
+        .macOS(.v15)
     ],
     products: [
         .executable(name: "ValetBar", targets: ["ValetBar"])

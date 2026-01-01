@@ -56,7 +56,6 @@ struct SettingsView: View {
                                 ))
                                 .labelsHidden()
                                 .toggleStyle(.switch)
-                                .controlSize(.mini)
                             }
                             .padding(12)
                             .background(Color.primary.opacity(0.03))

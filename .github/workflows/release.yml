@@ -169,8 +169,9 @@ jobs:
              --ed-key-file - \
              release_assets
              
-          # Inject the link to GitHub Release Notes into the appcast
-          sed -i '' "s|</item>|<sparkle:releaseNotesLink>https://github.com/ryzenixx/valetbar-macos/releases/tag/${{ github.ref_name }}</sparkle:releaseNotesLink></item>|" release_assets/appcast.xml
+          # Inject RELEASE_NOTES.md content into the appcast as <description>
+          perl -0777 -i -pe 'BEGIN { local $/; open(F, "<RELEASE_NOTES.md"); $notes = <F>; close(F); } s|</item>|<description><![CDATA[$notes]]></description></item>|' release_assets/appcast.xml
+          
           
              
           cat release_assets/appcast.xml

@@ -56,6 +56,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ---
 
 <div align="center">
-  <p>Built with ❤️ by Mael Duret</p>
-  <p><i>Not affiliated with Laravel or the Laravel Valet team.</i></p>
+  <p>Built with ❤️ by Mael Duret
+  <br>
+  <i>Not affiliated with Laravel or the Laravel Valet team.</i></p>
 </div>

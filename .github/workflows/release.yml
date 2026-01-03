@@ -7,183 +7,45 @@ on:
 
 jobs:
   build:
-    name: Build and Package
+    name: Build, Sign and Release
     runs-on: macos-latest
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        
+
+      - name: Import Signing Certificate
+        uses: apple-actions/import-codesign-certs@v2
+        with: 
+          p12-file-base64: ${{ secrets.MACOS_CERTIFICATE }}
+          p12-password: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+
+      - name: Make scripts executable
+        run: chmod +x scripts/*.sh
+
       - name: Set App Version
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
           sed -i '' "s/static let appVersion = \".*\"/static let appVersion = \"$VERSION\"/" Sources/App/AppConfig.swift
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Build Application
-        run: |
-          rm -rf .build
-          swift build -c release --arch arm64
-          
-          export EXECUTABLE_PATH=".build/arm64-apple-macosx/release/ValetBar"
-          export BUNDLE_PATH="./ValetBar.app"
-          export CONTENTS_PATH="$BUNDLE_PATH/Contents"
-          export RESOURCES_PATH="$CONTENTS_PATH/Resources"
-          export MACOS_PATH="$CONTENTS_PATH/MacOS"
-          
-          rm -rf "$BUNDLE_PATH"
-          mkdir -p "$MACOS_PATH"
-          mkdir -p "$RESOURCES_PATH"
-          
-          cp "$EXECUTABLE_PATH" "$MACOS_PATH/"
-          
-          install_name_tool -add_rpath "@executable_path/../Frameworks" "$MACOS_PATH/ValetBar"
-          
-          cp "Sources/Assets/MenuBarIcon.png" "$RESOURCES_PATH/"
-          cp "Sources/Assets/AppIcon.icns" "$RESOURCES_PATH/"
-          
-          export FRAMEWORKS_PATH="$CONTENTS_PATH/Frameworks"
-          mkdir -p "$FRAMEWORKS_PATH"
-          
-          find .build -name "Sparkle.framework" -exec cp -R {} "$FRAMEWORKS_PATH/" \;
-          
-          if [ ! -d "$FRAMEWORKS_PATH/Sparkle.framework" ]; then
-              echo "CRITICAL ERROR: Sparkle.framework not found"
-              exit 1
-          fi
-          
-          cat > "$CONTENTS_PATH/Info.plist" <<EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>CFBundleExecutable</key>
-              <string>ValetBar</string>
-              <key>CFBundleIconFile</key>
-              <string>AppIcon</string>
-              <key>CFBundleIdentifier</key>
-              <string>com.valetbar.app</string>
-              <key>CFBundleName</key>
-              <string>ValetBar</string>
-              <key>CFBundlePackageType</key>
-              <string>APPL</string>
-              <key>CFBundleVersion</key>
-              <string>${{ github.ref_name }}</string>
-              <key>CFBundleShortVersionString</key>
-              <string>${{ github.ref_name }}</string>
-              <key>LSMinimumSystemVersion</key>
-              <string>13.0</string>
-              <key>LSUIElement</key>
-              <true/>
-              <key>NSHighResolutionCapable</key>
-              <true/>
-              <key>SUFeedURL</key>
-              <string>https://raw.githubusercontent.com/ryzenixx/valetbar-macos/main/appcast.xml</string>
-              <key>SUPublicEDKey</key>
-              <string>${{ secrets.MACOS_SPARKLE_PUBLIC_KEY }}</string>
-              <key>SUEnableAutomaticChecks</key>
-              <true/>
-              <key>SUScheduledCheckInterval</key>
-              <integer>3600</integer>
-          </dict>
-          </plist>
-          EOF
+        run: ./scripts/bundle.sh
+        env:
+          VERSION: ${{ env.VERSION }}
+          SPARKLE_PUBLIC_KEY: ${{ secrets.MACOS_SPARKLE_PUBLIC_KEY }}
 
-      - name: Sign Application (Apple Developer)
-        env: 
-          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
-          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
-          MACOS_CI_KEYCHAIN_PWD: ${{ secrets.MACOS_CI_KEYCHAIN_PWD }}
-        run: |
-          export BUNDLE_PATH="./ValetBar.app"
-          export FRAMEWORKS_PATH="$BUNDLE_PATH/Contents/Frameworks"
-
-          echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
-          security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
-          
-          curl -O https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
-          security import AppleWWDRCAG3.cer -k build.keychain -T /usr/bin/codesign
-
-          security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
-          
-          IDENTITY_HASH=$(security find-identity -v -p codesigning build.keychain | grep -oE '"[^"]+"' | head -1 | tr -d '"')
-          echo "Signing with Identity: $IDENTITY_HASH"
-          
-          SPARKLE_FRAMEWORK="$FRAMEWORKS_PATH/Sparkle.framework"
-          
-          AUTOUPDATE_PATH=$(find "$SPARKLE_FRAMEWORK" -name "Autoupdate" -type f | head -n 1)
-          
-          if [ -z "$AUTOUPDATE_PATH" ]; then
-             echo "CRITICAL ERROR: Autoupdate binary not found"
-             exit 1
-          fi
-          
-          /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" "$AUTOUPDATE_PATH"
-          
-          UPDATER_APP_PATH=$(find "$SPARKLE_FRAMEWORK" -name "Updater.app" -type d | head -n 1)
-          if [ -n "$UPDATER_APP_PATH" ]; then
-             /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" "$UPDATER_APP_PATH/Contents/MacOS/Updater"
-             /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" "$UPDATER_APP_PATH"
-          fi
-          
-          /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" "$SPARKLE_FRAMEWORK"
-          
-          /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" ./ValetBar.app/Contents/MacOS/ValetBar
-          /usr/bin/codesign --force --options runtime --sign "$IDENTITY_HASH" ./ValetBar.app
+      - name: Sign Application
+        run: ./scripts/sign.sh
 
       - name: Create DMG
-        run: |
-          brew install create-dmg
-          create-dmg \
-            --volname "ValetBar Installer" \
-            --window-pos 200 120 \
-            --window-size 800 400 \
-            --icon-size 100 \
-            --icon "ValetBar.app" 200 190 \
-            --hide-extension "ValetBar.app" \
-            --app-drop-link 600 185 \
-            "ValetBar.dmg" \
-            "ValetBar.app"
-
-      - name: Sign Update (Sparkle) & Generate Appcast
+        run: ./scripts/package.sh
+        
+      - name: Generate Sparkle Appcast
+        run: ./scripts/generate_appcast.sh
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.MACOS_SPARKLE_PRIVATE_KEY }}
-        run: |
-          curl -L -o sparkle.tar.xz https://github.com/sparkle-project/Sparkle/releases/download/2.6.0/Sparkle-2.6.0.tar.xz
-          mkdir sparkle_tools
-          tar -xf sparkle.tar.xz -C sparkle_tools
-          
-          echo "$SPARKLE_PRIVATE_KEY" > sparkle_key.pem
-          
-          ./sparkle_tools/bin/sign_update "ValetBar.dmg" --ed-key-file sparkle_key.pem
-          
-          mkdir release_assets
-          cp "ValetBar.dmg" release_assets/
-          
-          DOWNLOAD_URL="https://github.com/ryzenixx/valetbar-macos/releases/download/${{ github.ref_name }}/"
-          
-          echo "$SPARKLE_PRIVATE_KEY" | ./sparkle_tools/bin/generate_appcast \
-             --download-url-prefix "$DOWNLOAD_URL" \
-             --ed-key-file - \
-             release_assets
-             
-          # Install pandoc for Markdown conversion
-          if ! command -v pandoc &> /dev/null; then
-              brew install pandoc
-          fi
-          
-          # Convert RELEASE_NOTES.md to HTML
-          pandoc RELEASE_NOTES.md -f markdown -t html -o release_notes.html
-          
-          # Inject HTML content into the appcast as <description>
-          perl -0777 -i -pe 'BEGIN { local $/; open(F, "<release_notes.html"); $notes = <F>; close(F); } s|</item>|<description><![CDATA[$notes]]></description></item>|' release_assets/appcast.xml
-          
-          
-          
-             
-          cat release_assets/appcast.xml
+          TAG_NAME: ${{ github.ref_name }}
 
       - name: Commit Appcast to Repo
         run: |
@@ -193,6 +55,7 @@ jobs:
           mv release_assets/appcast.xml .
           git add appcast.xml
           
+          # Pull latest main to avoid conflicts
           git fetch origin main
           git checkout main
           git pull origin main

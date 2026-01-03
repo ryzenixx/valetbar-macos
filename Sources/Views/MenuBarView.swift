@@ -196,7 +196,7 @@ struct MenuBarView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass")
                     .foregroundColor(.secondary)
-                    TextField("Search sites...", text: $viewModel.searchText)
+                    TextField("Search proxies...", text: $viewModel.searchText)
                         .textFieldStyle(.plain)
                         .font(.system(size: 13))
                 }
@@ -230,6 +230,16 @@ struct MenuBarView: View {
                             .foregroundColor(.secondary)
                             .padding(.top, 40)
                     } else {
+                        HStack {
+                            Text("\(viewModel.filteredProxies.count) \(viewModel.filteredProxies.count == 1 ? "PROXY" : "PROXIES")")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.secondary)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.top, 8)
+                        .padding(.bottom, 4)
+                        
                         ForEach(viewModel.filteredProxies) { proxy in
                             ProxyRow(proxy: proxy)
                                 .contextMenu {

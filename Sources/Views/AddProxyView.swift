@@ -76,7 +76,7 @@ struct AddProxyView: View {
                 
                 Spacer()
                 
-                Button("Create") {
+                Button("Create Proxy") {
                     createProxy()
                 }
                 .keyboardShortcut(.defaultAction)

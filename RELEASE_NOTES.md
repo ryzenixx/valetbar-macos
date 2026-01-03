@@ -1,4 +1,4 @@
-# Release 1.2.3 🐦
+# Release 1.2.4 🐦
 
 ### Fixed
 -   **UI**: Added descriptive icons to the Settings dropdown menu for better visual navigation.

@@ -1,5 +1,4 @@
-# Release 1.2.4 🐦
+# Release 1.2.5 🐦
 
-### Fixed
--   **UI**: Added descriptive icons to the Settings dropdown menu for better visual navigation.
--   **UI**: Improved readability of the target URL in the creation window by highlighting it in bold and dynamically updating the protocol (http/https).
+### Added
+-   **UI**: Added a dynamic header showing the total count of proxies above the list.

@@ -3,20 +3,17 @@
     <channel>
         <title>ValetBar</title>
         <item>
-            <title>1.2.5</title>
-            <pubDate>Sat, 03 Jan 2026 14:00:45 +0000</pubDate>
-            <sparkle:version>1.2.5</sparkle:version>
-            <sparkle:shortVersionString>1.2.5</sparkle:shortVersionString>
+            <title>1.2.6</title>
+            <pubDate>Tue, 13 Jan 2026 19:44:11 +0000</pubDate>
+            <sparkle:version>1.2.6</sparkle:version>
+            <sparkle:shortVersionString>1.2.6</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/ryzenixx/valetbar-macos/releases/download/v1.2.5/ValetBar.dmg" length="1205877" type="application/octet-stream" sparkle:edSignature="7Q4+BTTvE0chTQiDGz6Q3S9WdTw8mLN5BmWhpKZLL8kFuUhsL2tzVAyooiuajNr9S0hHoOIhqUqe42YTzQRQCA=="/>
-        <description><![CDATA[<h1 id="release-1.2.4">Release 1.2.4 🐦</h1>
-<h3 id="fixed">Fixed</h3>
+            <enclosure url="https://github.com/ryzenixx/valetbar-macos/releases/download/v1.2.6/ValetBar.dmg" length="1196051" type="application/octet-stream" sparkle:edSignature="J9twc+IKKXtq3KmQ3yKy3OtBVdVocYtroikfAUMEJi9PqPZYu1vH/1lxtHg5uSC+AQW+Y5IycHw46TMDQ5UQCQ=="/>
+        <description><![CDATA[<h1 id="release-1.2.5">Release 1.2.5 🐦</h1>
+<h3 id="added">Added</h3>
 <ul>
-<li><strong>UI</strong>: Added descriptive icons to the Settings
-dropdown menu for better visual navigation.</li>
-<li><strong>UI</strong>: Improved readability of the target URL in the
-creation window by highlighting it in bold and dynamically updating the
-protocol (http/https).</li>
+<li><strong>UI</strong>: Added a dynamic header showing the total count
+of proxies above the list.</li>
 </ul>
 ]]></description></item>
     </channel>
